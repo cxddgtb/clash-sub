@@ -41,7 +41,6 @@ REPO_NAME      = os.getenv("GITHUB_REPOSITORY", "qoder/clash-sub").split("/")[-1
 MAX_OUTPUT_NODES = 500                                    # 最大输出节点数
 
 # ── 爬取源配置 ──────────────────────────────────
-# 默认节点源（作为后备）
 DEFAULT_SOURCES = [
     "https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.txt",
     "https://raw.githubusercontent.com/mksshare/mksshare.github.io/main/README.md",
@@ -54,10 +53,8 @@ DEFAULT_SOURCES = [
     "https://raw.githubusercontent.com/alanbobsun/TinyV2ray/main/clash_sub.yml",
 ]
 
-# 尝试从 GitHub Secrets (环境变量 SUB_SOURCES) 读取，支持多行文本
 raw_sources = os.getenv("SUB_SOURCES", "")
 if raw_sources.strip():
-    # 按换行符分割，并过滤掉空行
     SOURCES = [url.strip() for url in raw_sources.strip().splitlines() if url.strip()]
     log.info("✅ 成功从 Secret 加载 %d 个自定义订阅源。", len(SOURCES))
 else:
@@ -100,6 +97,22 @@ class Node:
     @property
     def alive(self) -> bool:
         return self.latency is not None and self.latency < 5000
+
+# ══════════════════════════════════════════════════════════
+# 名称工具（修复：代理组与节点列表名称必须完全一致）
+# ══════════════════════════════════════════════════════════
+
+def _display_name(n: Node) -> str:
+    """节点显示名称（含延迟标签）。代理组和节点列表共用，保证引用一致。"""
+    latency_tag = f" [{n.latency}ms]" if n.alive else ""
+    return f"{n.name}{latency_tag}"
+
+def _yaml_str(s: str) -> str:
+    """转义 YAML 双引号字符串中的特殊字符，防止节点名含引号/换行导致配置损坏。"""
+    return (s.replace("\\", "\\\\")
+             .replace('"', '\\"')
+             .replace("\n", " ")
+             .replace("\r", " "))
 
 # ══════════════════════════════════════════════════════════
 # 爬取
@@ -568,21 +581,30 @@ proxies:
 def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     # 只获取存活节点
     alive_nodes = [n for n in nodes if n.alive]
-    
+
     # 存活节点按延迟从低到高排序
     alive_nodes.sort(key=lambda n: n.latency or 9999)
-    
-    # 只取前 500 个存活节点，不用死亡节点补足
-    top_nodes = alive_nodes[:MAX_OUTPUT_NODES]
 
-    # 自动选择组：使用这 500 个存活节点
-    proxy_names_list = [f'- "{n.name}"' for n in top_nodes]
+    # 按显示名称去重，防止 Clash 报 "duplicate proxy name" 错误
+    seen: set[str] = set()
+    unique_nodes: list[Node] = []
+    for n in alive_nodes:
+        dn = _display_name(n)
+        if dn in seen:
+            continue
+        seen.add(dn)
+        unique_nodes.append(n)
+
+    # 只取前 500 个存活节点，不用死亡节点补足
+    top_nodes = unique_nodes[:MAX_OUTPUT_NODES]
+
+    # 修复：代理组引用的名称必须与节点列表中的名称完全一致（都带延迟标签）
+    proxy_names_list = [f'- "{_yaml_str(_display_name(n))}"' for n in top_nodes]
     if not proxy_names_list:
         proxy_names_list = ['- "DIRECT"']
     proxy_names = "\n      ".join(proxy_names_list)
 
-    # 手动切换组：使用这 500 个存活节点
-    select_list = [f'- "{n.name}"' for n in top_nodes]
+    select_list = [f'- "{_yaml_str(_display_name(n))}"' for n in top_nodes]
     if not select_list:
         proxy_names_select = ""
     else:
@@ -604,8 +626,8 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     )
 
 def _node_to_yaml(n: Node) -> str:
-    latency_tag = f" [{n.latency}ms]" if n.alive else ""
-    name = f"{n.name}{latency_tag}"
+    # 修复：使用与代理组完全一致的显示名称
+    name = _yaml_str(_display_name(n))
 
     if n.protocol == "vmess":
         info = parse_vmess_uri(n.uri) or {}
