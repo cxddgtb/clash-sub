@@ -1,7 +1,7 @@
 # ═══ Clash Meta 自动订阅 ═══
-# 更新时间: 2026-08-12 14:50:53 UTC
-# 节点总数: 22 (本次存活: 10)
-# 存档去重覆盖天数: ~2d
+# 更新时间: 2026-08-12 15:15:41 UTC
+# 节点总数: 99 (本次存活: 98)
+# 存档去重覆盖天数: ~3d
 
 mixed-port: 7890
 allow-lan: true
@@ -65,7 +65,105 @@ dns:
 proxy-groups:
   - name: "🚀 自动选择"
     type: url-test
-    proxies: "🇺🇸_US_美国->🇩🇪_DE_德国", "🇺🇸_US_美国_1", "🇺🇸_US_美国", "🇭🇰_HK_中国香港->🇯🇵_JP_日本", "🇩🇪_DE_德国->🇧🇷_BR_巴西", "🇭🇰 香港5|@ripaojiedian", "🇫🇷_FR_法国", "🇨🇳_CN_中国", "🇭🇰 香港|@ripaojiedian", "🇨🇳_CN_中国->🇭🇰_HK_中国香港"
+    proxies:
+      - "CF官方优选87"
+      - "CF官方优选83"
+      - "CF官方优选88"
+      - "CF官方优选89"
+      - "CF官方优选93"
+      - "CF官方优选94"
+      - "CF官方优选96"
+      - "CF官方优选98"
+      - "CF官方优选99"
+      - "CF官方优选2"
+      - "CF官方优选3"
+      - "CF官方优选6"
+      - "CF官方优选10"
+      - "CF官方优选12"
+      - "CF官方优选18"
+      - "CF官方优选20"
+      - "CF官方优选21"
+      - "CF官方优选42"
+      - "CF官方优选43"
+      - "CF官方优选35"
+      - "CF官方优选37"
+      - "CF官方优选38"
+      - "CF官方优选44"
+      - "CF官方优选52"
+      - "CF官方优选59"
+      - "CF官方优选61"
+      - "CF官方优选63"
+      - "CF官方优选66"
+      - "CF官方优选7"
+      - "CF官方优选8"
+      - "CF官方优选27"
+      - "CF官方优选28"
+      - "CF官方优选36"
+      - "CF官方优选68"
+      - "CF官方优选72"
+      - "CF官方优选73"
+      - "CF官方优选78"
+      - "CF官方优选51"
+      - "CF官方优选67"
+      - "CF官方优选74"
+      - "CF官方优选77"
+      - "CF官方优选80"
+      - "CF官方优选86"
+      - "CF官方优选97"
+      - "CF官方优选5"
+      - "CF官方优选14"
+      - "CF官方优选17"
+      - "CF官方优选19"
+      - "CF官方优选95"
+      - "CF官方优选9"
+      - "CF官方优选11"
+      - "CF官方优选15"
+      - "CF官方优选16"
+      - "CF官方优选26"
+      - "CF官方优选41"
+      - "CF官方优选92"
+      - "CF官方优选29"
+      - "CF官方优选30"
+      - "CF官方优选31"
+      - "CF官方优选39"
+      - "CF官方优选53"
+      - "CF官方优选65"
+      - "CF官方优选69"
+      - "CF官方优选81"
+      - "CF官方优选82"
+      - "CF官方优选84"
+      - "CF官方优选85"
+      - "CF官方优选90"
+      - "CF官方优选91"
+      - "CF官方优选57"
+      - "CF官方优选64"
+      - "CF官方优选75"
+      - "CF官方优选76"
+      - "CF官方优选34"
+      - "CF官方优选48"
+      - "CF官方优选32"
+      - "CF官方优选56"
+      - "CF官方优选23"
+      - "CF官方优选25"
+      - "CF官方优选40"
+      - "CF官方优选47"
+      - "CF官方优选71"
+      - "CF官方优选79"
+      - "CF官方优选1"
+      - "CF官方优选49"
+      - "CF官方优选50"
+      - "CF官方优选55"
+      - "CF官方优选24"
+      - "CF官方优选60"
+      - "CF官方优选62"
+      - "CF官方优选70"
+      - "CF官方优选33"
+      - "CF官方优选13"
+      - "CF官方优选45"
+      - "CF官方优选58"
+      - "CF官方优选4"
+      - "CF官方优选46"
+      - "CF官方优选54"
     url: 'https://www.gstatic.com/generate_204'
     interval: 300
     tolerance: 50
@@ -75,8 +173,56 @@ proxy-groups:
     proxies:
       - "🚀 自动选择"
       - DIRECT
-      
-- "🇺🇸_US_美国->🇩🇪_DE_德国"      - "🇺🇸_US_美国_1"      - "🇺🇸_US_美国"      - "🇭🇰_HK_中国香港->🇯🇵_JP_日本"      - "🇩🇪_DE_德国->🇧🇷_BR_巴西"      - "🇭🇰 香港5|@ripaojiedian"      - "🇫🇷_FR_法国"      - "🇨🇳_CN_中国"      - "🇭🇰 香港|@ripaojiedian"      - "🇨🇳_CN_中国->🇭🇰_HK_中国香港"      - "tg频道:@ripaojiedian"      - "🇭🇰 香港3|@ripaojiedian"      - "🇭🇰 香港4|@ripaojiedian"      - "🇯🇵 日本|@ripaojiedian"      - "🇯🇵 日本2|@ripaojiedian"      - "🇯🇵 日本3|@ripaojiedian"      - "🇸🇬 新加坡|@ripaojiedian"      - "🇸🇬 新加坡2|@ripaojiedian"      - "🇸🇬 新加坡3|@ripaojiedian"      - "🇺🇸 美国|@ripaojiedian"      - "🇺🇸 美国2|@ripaojiedian"      - "🇺🇸 美国3|@ripaojiedian"
+      - "CF官方优选87"
+      - "CF官方优选83"
+      - "CF官方优选88"
+      - "CF官方优选89"
+      - "CF官方优选93"
+      - "CF官方优选94"
+      - "CF官方优选96"
+      - "CF官方优选98"
+      - "CF官方优选99"
+      - "CF官方优选2"
+      - "CF官方优选3"
+      - "CF官方优选6"
+      - "CF官方优选10"
+      - "CF官方优选12"
+      - "CF官方优选18"
+      - "CF官方优选20"
+      - "CF官方优选21"
+      - "CF官方优选42"
+      - "CF官方优选43"
+      - "CF官方优选35"
+      - "CF官方优选37"
+      - "CF官方优选38"
+      - "CF官方优选44"
+      - "CF官方优选52"
+      - "CF官方优选59"
+      - "CF官方优选61"
+      - "CF官方优选63"
+      - "CF官方优选66"
+      - "CF官方优选7"
+      - "CF官方优选8"
+      - "CF官方优选27"
+      - "CF官方优选28"
+      - "CF官方优选36"
+      - "CF官方优选68"
+      - "CF官方优选72"
+      - "CF官方优选73"
+      - "CF官方优选78"
+      - "CF官方优选51"
+      - "CF官方优选67"
+      - "CF官方优选74"
+      - "CF官方优选77"
+      - "CF官方优选80"
+      - "CF官方优选86"
+      - "CF官方优选97"
+      - "CF官方优选5"
+      - "CF官方优选14"
+      - "CF官方优选17"
+      - "CF官方优选19"
+      - "CF官方优选95"
+      - "CF官方优选9"
 
   - name: "📺 流媒体"
     type: select
@@ -231,152 +377,795 @@ rules:
 
 # ── 代理节点 ──
 proxies:
-  - name: "🇺🇸_US_美国->🇩🇪_DE_德国 [9ms]"
+  - name: "CF官方优选87 [5ms]"
     type: vless
-    server: 104.25.194.196
-    port: 2086
-    uuid: e3c7c198-2b02-42c2-b78f-22dfc078219c
+    server: 104.17.212.188
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
     tls: False
     network: ws
-  - name: "🇺🇸_US_美国_1 [10ms]"
+  - name: "CF官方优选83 [6ms]"
     type: vless
-    server: 172.67.209.127
-    port: 8880
-    uuid: 942bdcfc-e522-44f1-b899-3bd8db7c5ae2
+    server: 172.66.3.28
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
     tls: False
     network: ws
-  - name: "🇺🇸_US_美国 [30ms]"
-    type: vmess
-    server: guanwang.awsno.com
-    port: 443
-    uuid: 6a89a215-22bf-4bd7-9642-b95b2e09583a
-    alterId: 0
-    cipher: auto
-    udp: true
-  - name: "🇭🇰_HK_中国香港->🇯🇵_JP_日本 [101ms]"
-    type: trojan
-    server: oplosgru-c.catcat321.com
-    port: 20004
-    password: "ba07a8af-5544-48ac-ab62-3b6c00a44fa6"
-    udp: true
-  - name: "🇩🇪_DE_德国->🇧🇷_BR_巴西 [148ms]"
+  - name: "CF官方优选88 [6ms]"
     type: vless
-    server: 18.198.227.161
+    server: 104.16.254.134
     port: 443
-    uuid: 4f375fb4-3c95-425f-bc7b-8085487a6f3c
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
     tls: False
     network: ws
-  - name: "🇭🇰 香港5|@ripaojiedian [159ms]"
-    type: trojan
-    server: 18.162.120.218
-    port: 11035
-    password: "BxceQaOe"
-    udp: true
-  - name: "🇫🇷_FR_法国 [167ms]"
+  - name: "CF官方优选89 [6ms]"
     type: vless
-    server: fr199.mechvpn.online
-    port: 443
-    uuid: 53c76647-14d1-4df5-99cb-be99ad2e6bd9
+    server: 104.18.33.66
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
     tls: False
-    network: tcp
-  - name: "🇨🇳_CN_中国 [216ms]"
+    network: ws
+  - name: "CF官方优选93 [6ms]"
     type: vless
-    server: 120.227.1.43
-    port: 12528
-    uuid: f0169b08-43fd-4dc3-8195-18f6ad2fe39d
+    server: 104.17.99.51
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
     tls: False
-    network: tcp
-  - name: "🇭🇰 香港|@ripaojiedian [241ms]"
-    type: vmess
-    server: v10.hdacd.com
-    port: 30807
-    uuid: cbb3f877-d1fb-344c-87a9-d153bffd5484
-    alterId: 2
-    cipher: auto
+    network: ws
+  - name: "CF官方优选94 [6ms]"
+    type: vless
+    server: 91.193.59.31
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇨🇳_CN_中国->🇭🇰_HK_中国香港 [314ms]"
-    type: vmess
-    server: v9.hdacd.com
-    port: 30809
-    uuid: cbb3f877-d1fb-344c-87a9-d153bffd5484
-    alterId: 2
-    cipher: auto
+    tls: False
+    network: ws
+  - name: "CF官方优选96 [6ms]"
+    type: vless
+    server: 198.41.209.61
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "tg频道:@ripaojiedian"
-    type: ss
-    server: 63.180.254.10
+    tls: False
+    network: ws
+  - name: "CF官方优选98 [6ms]"
+    type: vless
+    server: 104.18.33.11
     port: 443
-    cipher: aes-256-cfb
-    password: "amazonskr05"
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇭🇰 香港3|@ripaojiedian"
-    type: trojan
-    server: 16.162.100.124
-    port: 11231
-    password: "6ec301428255a78a1d826988d86cc87e"
+    tls: False
+    network: ws
+  - name: "CF官方优选99 [6ms]"
+    type: vless
+    server: 104.17.186.85
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇭🇰 香港4|@ripaojiedian"
-    type: trojan
-    server: 18.162.244.203
-    port: 11035
-    password: "BxceQaOe"
+    tls: False
+    network: ws
+  - name: "CF官方优选2 [7ms]"
+    type: vless
+    server: 108.162.198.179
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇯🇵 日本|@ripaojiedian"
-    type: trojan
-    server: 16.162.100.124
-    port: 4099
-    password: "BxceQaOe"
+    tls: False
+    network: ws
+  - name: "CF官方优选3 [7ms]"
+    type: vless
+    server: 108.162.198.132
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇯🇵 日本2|@ripaojiedian"
-    type: trojan
-    server: 16.162.192.182
-    port: 44229
-    password: "6ec301428255a78a1d826988d86cc87e"
+    tls: False
+    network: ws
+  - name: "CF官方优选6 [7ms]"
+    type: vless
+    server: 188.164.248.182
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇯🇵 日本3|@ripaojiedian"
-    type: trojan
-    server: 16.162.192.182
-    port: 18286
-    password: "6ec301428255a78a1d826988d86cc87e"
+    tls: False
+    network: ws
+  - name: "CF官方优选10 [7ms]"
+    type: vless
+    server: 172.67.71.104
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇸🇬 新加坡|@ripaojiedian"
-    type: trojan
-    server: 16.162.100.124
-    port: 32434
-    password: "6ec301428255a78a1d826988d86cc87e"
+    tls: False
+    network: ws
+  - name: "CF官方优选12 [8ms]"
+    type: vless
+    server: 8.39.125.193
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇸🇬 新加坡2|@ripaojiedian"
-    type: trojan
-    server: 16.162.192.182
-    port: 45744
-    password: "6ec301428255a78a1d826988d86cc87e"
+    tls: False
+    network: ws
+  - name: "CF官方优选18 [8ms]"
+    type: vless
+    server: 8.35.211.167
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇸🇬 新加坡3|@ripaojiedian"
-    type: trojan
-    server: 18.163.126.92
-    port: 26704
-    password: "BxceQaOe"
+    tls: False
+    network: ws
+  - name: "CF官方优选20 [8ms]"
+    type: vless
+    server: 108.162.198.12
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇺🇸 美国|@ripaojiedian"
-    type: trojan
-    server: 95.40.14.234
-    port: 28051
-    password: "6ec301428255a78a1d826988d86cc87e"
+    tls: False
+    network: ws
+  - name: "CF官方优选21 [8ms]"
+    type: vless
+    server: 91.193.58.17
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇺🇸 美国2|@ripaojiedian"
-    type: trojan
-    server: 16.162.100.124
-    port: 10418
-    password: "6ec301428255a78a1d826988d86cc87e"
+    tls: False
+    network: ws
+  - name: "CF官方优选42 [8ms]"
+    type: vless
+    server: 8.39.125.2
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
-  - name: "🇺🇸 美国3|@ripaojiedian"
-    type: trojan
-    server: 16.162.100.124
-    port: 28051
-    password: "BxceQaOe"
+    tls: False
+    network: ws
+  - name: "CF官方优选43 [8ms]"
+    type: vless
+    server: 162.159.45.20
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
     udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选35 [9ms]"
+    type: vless
+    server: 8.35.211.61
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选37 [10ms]"
+    type: vless
+    server: 172.66.3.14
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选38 [10ms]"
+    type: vless
+    server: 104.17.155.66
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选44 [10ms]"
+    type: vless
+    server: 104.18.33.206
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选52 [10ms]"
+    type: vless
+    server: 104.19.150.110
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选59 [10ms]"
+    type: vless
+    server: 188.164.248.93
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选61 [10ms]"
+    type: vless
+    server: 104.18.33.123
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选63 [10ms]"
+    type: vless
+    server: 91.193.58.196
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选66 [10ms]"
+    type: vless
+    server: 91.193.58.185
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选7 [11ms]"
+    type: vless
+    server: 104.18.33.111
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选8 [11ms]"
+    type: vless
+    server: 104.17.62.190
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选27 [11ms]"
+    type: vless
+    server: 172.66.3.254
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选28 [11ms]"
+    type: vless
+    server: 188.164.248.110
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选36 [11ms]"
+    type: vless
+    server: 108.162.198.17
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选68 [11ms]"
+    type: vless
+    server: 104.17.97.227
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选72 [11ms]"
+    type: vless
+    server: 8.35.211.30
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选73 [11ms]"
+    type: vless
+    server: 162.159.36.75
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选78 [11ms]"
+    type: vless
+    server: 188.164.248.127
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选51 [12ms]"
+    type: vless
+    server: 172.66.0.118
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选67 [12ms]"
+    type: vless
+    server: 172.67.79.20
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选74 [12ms]"
+    type: vless
+    server: 172.67.68.192
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选77 [12ms]"
+    type: vless
+    server: 104.18.33.126
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选80 [12ms]"
+    type: vless
+    server: 8.39.125.75
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选86 [12ms]"
+    type: vless
+    server: 104.19.146.11
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选97 [12ms]"
+    type: vless
+    server: 198.41.208.150
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选5 [13ms]"
+    type: vless
+    server: 104.16.246.177
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选14 [13ms]"
+    type: vless
+    server: 104.16.251.156
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选17 [13ms]"
+    type: vless
+    server: 104.19.146.159
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选19 [13ms]"
+    type: vless
+    server: 104.17.220.70
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选95 [13ms]"
+    type: vless
+    server: 104.16.156.200
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选9 [14ms]"
+    type: vless
+    server: 104.17.153.147
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选11 [14ms]"
+    type: vless
+    server: 104.17.126.100
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选15 [14ms]"
+    type: vless
+    server: 104.17.220.129
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选16 [14ms]"
+    type: vless
+    server: 104.19.147.142
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选26 [14ms]"
+    type: vless
+    server: 104.17.18.229
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选41 [14ms]"
+    type: vless
+    server: 104.17.120.41
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选92 [14ms]"
+    type: vless
+    server: 104.19.34.146
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选29 [15ms]"
+    type: vless
+    server: 104.19.148.2
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选30 [15ms]"
+    type: vless
+    server: 104.19.55.241
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选31 [15ms]"
+    type: vless
+    server: 104.17.171.240
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选39 [15ms]"
+    type: vless
+    server: 104.19.52.178
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选53 [15ms]"
+    type: vless
+    server: 104.17.60.79
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选65 [15ms]"
+    type: vless
+    server: 104.26.10.32
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选69 [15ms]"
+    type: vless
+    server: 104.19.48.63
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选81 [15ms]"
+    type: vless
+    server: 104.17.57.167
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选82 [15ms]"
+    type: vless
+    server: 104.17.176.236
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选84 [15ms]"
+    type: vless
+    server: 198.41.209.200
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选85 [15ms]"
+    type: vless
+    server: 104.17.24.167
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选90 [15ms]"
+    type: vless
+    server: 104.19.35.38
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选91 [15ms]"
+    type: vless
+    server: 104.16.157.218
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选57 [16ms]"
+    type: vless
+    server: 104.19.54.223
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选64 [16ms]"
+    type: vless
+    server: 104.19.35.209
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选75 [16ms]"
+    type: vless
+    server: 104.16.153.44
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选76 [16ms]"
+    type: vless
+    server: 104.17.146.133
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选34 [17ms]"
+    type: vless
+    server: 104.16.249.57
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选48 [17ms]"
+    type: vless
+    server: 104.19.48.66
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选32 [18ms]"
+    type: vless
+    server: 104.17.105.104
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选56 [18ms]"
+    type: vless
+    server: 104.16.151.147
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选23 [19ms]"
+    type: vless
+    server: 104.19.48.159
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选25 [19ms]"
+    type: vless
+    server: 104.19.53.234
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选40 [19ms]"
+    type: vless
+    server: 104.19.146.164
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选47 [19ms]"
+    type: vless
+    server: 172.67.67.228
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选71 [19ms]"
+    type: vless
+    server: 104.17.187.184
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选79 [19ms]"
+    type: vless
+    server: 104.19.144.77
+    port: 2083
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选1 [20ms]"
+    type: vless
+    server: 104.17.171.3
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选49 [21ms]"
+    type: vless
+    server: 104.17.191.140
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选50 [21ms]"
+    type: vless
+    server: 104.17.108.211
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选55 [21ms]"
+    type: vless
+    server: 104.17.123.154
+    port: 8443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选24 [22ms]"
+    type: vless
+    server: 104.19.55.155
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选60 [22ms]"
+    type: vless
+    server: 104.17.208.84
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选62 [22ms]"
+    type: vless
+    server: 104.17.30.110
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选70 [22ms]"
+    type: vless
+    server: 104.17.117.129
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选33 [23ms]"
+    type: vless
+    server: 104.17.156.33
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选13 [24ms]"
+    type: vless
+    server: 104.17.190.75
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选45 [24ms]"
+    type: vless
+    server: 104.17.49.17
+    port: 2053
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选58 [24ms]"
+    type: vless
+    server: 198.41.209.125
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选4 [25ms]"
+    type: vless
+    server: 104.16.253.8
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选46 [25ms]"
+    type: vless
+    server: 104.17.48.120
+    port: 443
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选54 [25ms]"
+    type: vless
+    server: 104.19.145.33
+    port: 2087
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
+  - name: "CF官方优选22"
+    type: vless
+    server: 104.17.52.253
+    port: 2096
+    uuid: 73bcd72f-9545-4cb8-8daf-7d004501880d
+    udp: true
+    tls: False
+    network: ws
