@@ -99,7 +99,7 @@ class Node:
         return self.latency is not None and self.latency < 5000
 
 # ══════════════════════════════════════════════════════════
-# 名称工具（修复：代理组与节点列表名称必须完全一致）
+# 名称工具（代理组与节点列表名称必须完全一致）
 # ══════════════════════════════════════════════════════════
 
 def _display_name(n: Node) -> str:
@@ -304,7 +304,7 @@ async def test_nodes(nodes: list[Node]) -> list[Node]:
     return alive
 
 # ══════════════════════════════════════════════════════════
-# 存档系统
+# 存档系统（修复：保存/读取格式不一致导致的“存档损坏”误报）
 # ══════════════════════════════════════════════════════════
 
 def load_archives() -> dict[str, Node]:
@@ -313,12 +313,18 @@ def load_archives() -> dict[str, Node]:
     for fp in files[:MAX_ARCHIVE]:
         try:
             data = json.loads(fp.read_text(encoding="utf-8"))
+            if not isinstance(data, list):
+                raise ValueError("archive root is not a list")
             for item in data:
-                fp_key = item["fingerprint"]
+                # 只保留 Node 的合法字段，兼容未来字段变更
+                clean = {k: v for k, v in item.items() if k in Node.__dataclass_fields__}
+                node = Node(**clean)
+                # 旧存档没有 fingerprint 字段 → 重新计算；新存档直接读取
+                fp_key = item.get("fingerprint") or node.fingerprint
                 if fp_key not in merged:
-                    merged[fp_key] = Node(**item)
-        except Exception:
-            log.warning("Corrupted archive: %s", fp)
+                    merged[fp_key] = node
+        except Exception as e:
+            log.warning("Corrupted archive (ignored): %s — %s", fp, e)
     log.info("Loaded %d unique nodes from %d archive(s)", len(merged), min(len(files), MAX_ARCHIVE))
     return merged
 
@@ -326,7 +332,8 @@ def save_archive(nodes: list[Node]) -> Path:
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     path = ARCHIVE_DIR / f"nodes_{ts}.json"
-    data = [asdict(n) for n in nodes]
+    # 修复：保存时把 fingerprint 一并写入，读取时不再 KeyError
+    data = [{**asdict(n), "fingerprint": n.fingerprint} for n in nodes]
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     log.info("Archive saved: %s (%d nodes)", path, len(nodes))
     return path
@@ -598,7 +605,7 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     # 只取前 500 个存活节点，不用死亡节点补足
     top_nodes = unique_nodes[:MAX_OUTPUT_NODES]
 
-    # 修复：代理组引用的名称必须与节点列表中的名称完全一致（都带延迟标签）
+    # 代理组引用的名称与节点列表完全一致（都带延迟标签）
     proxy_names_list = [f'- "{_yaml_str(_display_name(n))}"' for n in top_nodes]
     if not proxy_names_list:
         proxy_names_list = ['- "DIRECT"']
@@ -626,7 +633,7 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     )
 
 def _node_to_yaml(n: Node) -> str:
-    # 修复：使用与代理组完全一致的显示名称
+    # 使用与代理组完全一致的显示名称
     name = _yaml_str(_display_name(n))
 
     if n.protocol == "vmess":
