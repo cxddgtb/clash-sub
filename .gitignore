@@ -1,0 +1,7 @@
+archives/*.json
+output/clash.yaml
+output/sub.txt
+output/uris.txt
+output/index.html
+__pycache__/
+*.pyc
