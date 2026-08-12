@@ -43,7 +43,6 @@ REPO_NAME      = os.getenv("GITHUB_REPOSITORY", "qoder/clash-sub").split("/")[-1
 MAX_OUTPUT_NODES = 500
 
 def safe_int(val, default=0):
-    """安全转换为 int，避免 ValueError/TypeError 导致脚本崩溃"""
     try:
         return int(val)
     except (ValueError, TypeError):
@@ -105,15 +104,16 @@ class Node:
 
     @property
     def alive(self) -> bool:
+        # 只有延迟不为空，且不是假延迟，才算存活
         return self.latency is not None and self.latency < 5000
 
 # ══════════════════════════════════════════════════════════
-# 名称工具
+# 名称工具（已去除延迟标签，交由客户端真实测速）
 # ══════════════════════════════════════════════════════════
 
 def _display_name(n: Node) -> str:
-    latency_tag = f" [{n.latency}ms]" if n.alive else ""
-    return f"{n.name}{latency_tag}"
+    # 不再拼接延迟标签，避免误导，让 Clash 客户端自己测真实延迟
+    return n.name
 
 def _yaml_str(s: str) -> str:
     return (s.replace("\\", "\\\\")
@@ -282,21 +282,43 @@ def _add_yaml_proxy(proxy: dict, source: str, nodes: dict[str, Node]):
     nodes[n.fingerprint] = n
 
 # ══════════════════════════════════════════════════════════
-# 测试: TCP 连通性 + 延迟
+# 测试: 深度 TCP 连通性 (防 DNS 劫持 & 过滤假延迟)
 # ══════════════════════════════════════════════════════════
 
 async def test_one(node: Node, sem: asyncio.Semaphore) -> None:
     async with sem:
         try:
+            loop = asyncio.get_running_loop()
+            # 1. 强制底层 DNS 解析，获取真实 IP
+            infos = await loop.getaddrinfo(node.server, node.port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM)
+            if not infos:
+                node.latency = None
+                return
+            
+            family, type_, proto, canonname, sockaddr = infos[0]
+            ip = sockaddr[0]
+            
+            # 2. 过滤本地/局域网 IP (防止 DNS 污染劫持到本地网络导致 1ms 假连通)
+            if ip.startswith('127.') or ip.startswith('10.') or ip.startswith('192.168.') or ip.startswith('0.') or ip == '::1':
+                node.latency = None
+                return
+
+            # 3. 连接真实 IP
             t0 = time.monotonic()
             _, writer = await asyncio.wait_for(
-                asyncio.open_connection(node.server, node.port),
+                asyncio.open_connection(ip, node.port),
                 timeout=TEST_TIMEOUT,
             )
             latency = int((time.monotonic() - t0) * 1000)
             writer.close()
             await writer.wait_closed()
-            node.latency = latency
+            
+            # 4. 过滤不合理的超低延迟 (广域网 TCP 握手极少 < 15ms，低于 15ms 大概率是防火墙秒拒或劫持)
+            if latency < 15:
+                node.latency = None
+            else:
+                node.latency = latency
+                
         except Exception:
             node.latency = None
 
@@ -601,7 +623,9 @@ proxies:
 
 def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     alive_nodes = [n for n in nodes if n.alive]
+    # 服务端初步按 TCP 延迟排序（作为初始顺序）
     alive_nodes.sort(key=lambda n: n.latency or 9999)
+    
     seen: set[str] = set()
     unique_nodes: list[Node] = []
     for n in alive_nodes:
@@ -610,18 +634,23 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
             continue
         seen.add(dn)
         unique_nodes.append(n)
+        
     top_nodes = unique_nodes[:MAX_OUTPUT_NODES]
+    
     proxy_names_list = [f'- "{_yaml_str(_display_name(n))}"' for n in top_nodes]
     if not proxy_names_list:
         proxy_names_list = ['- "DIRECT"']
     proxy_names = "\n      ".join(proxy_names_list)
+    
     select_list = [f'- "{_yaml_str(_display_name(n))}"' for n in top_nodes]
     if not select_list:
         proxy_names_select = ""
     else:
         proxy_names_select = "\n      ".join(select_list)
+        
     yaml_nodes_list = [_node_to_yaml(n) for n in top_nodes]
     yaml_block = "\n".join(yaml_nodes_list)
+    
     return CLASH_TEMPLATE.format(
         datetime=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
         total=len(nodes),
@@ -735,17 +764,22 @@ async def main():
                 merged[n.fingerprint] = n
         all_nodes = list(merged.values())
         log.info("After merge: %d (fresh %d + old %d)", len(all_nodes), len(fresh), len(old))
+        
         alive = await test_nodes(all_nodes)
         alive.sort(key=lambda n: n.latency or 9999)
+        
         save_archive(all_nodes)
         prune_archives()
         archive_count = len(list(ARCHIVE_DIR.glob("nodes_*.json")))
+        
         yaml_out = generate_subscription(all_nodes, archive_count)
         (OUTPUT_DIR / "clash.yaml").write_text(yaml_out, encoding="utf-8")
+        
         uri_list = chr(10).join(n.uri for n in alive[:MAX_OUTPUT_NODES])
         b64_out = base64.b64encode(uri_list.encode()).decode()
         (OUTPUT_DIR / "sub.txt").write_text(b64_out, encoding="utf-8")
         (OUTPUT_DIR / "uris.txt").write_text(uri_list, encoding="utf-8")
+        
         html = f"""<!DOCTYPE html>
 <html lang="zh">
 <head>
