@@ -35,7 +35,7 @@ OUTPUT_DIR     = Path(os.getenv("OUTPUT_DIR", "output"))
 MAX_ARCHIVE    = int(os.getenv("MAX_ARCHIVE_FILES", "5"))
 TEST_TIMEOUT   = int(os.getenv("TEST_TIMEOUT", "8"))      # 每个节点测试超时秒数
 MAX_CONCURRENT = int(os.getenv("MAX_CONCURRENT", "80"))   # 并发测试数
-REPO_BRANCH    = os.getenv("GITHUB_REF_NAME", "main")     # 用于生成 raw 链接
+REPO_BRANCH    = os.getenv("GITHUB_REF_NAME", "main")
 REPO_OWNER     = os.getenv("GITHUB_REPOSITORY_OWNER", "qoder")
 REPO_NAME      = os.getenv("GITHUB_REPOSITORY", "qoder/clash-sub").split("/")[-1]
 
@@ -58,7 +58,6 @@ PROXY_URI_RE = re.compile(
     re.IGNORECASE,
 )
 
-# 通用 IP:端口 匹配
 IP_PORT_RE = re.compile(
     r'\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{2,5})\b'
 )
@@ -72,19 +71,18 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Node:
-    uri: str              # 原始 URI
-    protocol: str         # vmess / vless / trojan / ss / ssr / hysteria2 / tuic …
-    name: str             # 节点名称 (ps / remarks / name)
-    server: str           # host 或 IP
+    uri: str
+    protocol: str
+    name: str
+    server: str
     port: int
-    latency: Optional[int] = None   # ms, None = 未测试/不通
-    source: str = ""                # 来源 URL
-    first_seen: str = ""            # ISO datetime
+    latency: Optional[int] = None
+    source: str = ""
+    first_seen: str = ""
     last_seen: str = ""
 
     @property
     def fingerprint(self) -> str:
-        """基于 name+server+port+protocol 的去重指纹"""
         raw = f"{self.protocol}://{self.server}:{self.port}#{self.name}"
         return hashlib.sha256(raw.encode()).hexdigest()
 
@@ -98,7 +96,6 @@ class Node:
 # ══════════════════════════════════════════════════════════
 
 async def fetch_text(session: aiohttp.ClientSession, url: str) -> str:
-    """拉取 URL 文本（自动尝试 Base64 解码）。"""
     try:
         async with async_timeout.timeout(25):
             async with session.get(url, headers={"User-Agent": "clash-sub/1.0"}) as resp:
@@ -298,7 +295,6 @@ async def test_nodes(nodes: list[Node]) -> list[Node]:
 # ══════════════════════════════════════════════════════════
 
 def load_archives() -> dict[str, Node]:
-    """加载最近 MAX_ARCHIVE 个存档 → {fingerprint: Node} 去重合并"""
     merged: dict[str, Node] = {}
     files = sorted(ARCHIVE_DIR.glob("nodes_*.json"), reverse=True)
     for fp in files[:MAX_ARCHIVE]:
@@ -572,19 +568,16 @@ proxies:
 
 
 def generate_subscription(nodes: list[Node], archive_count: int) -> str:
-    """生成 YAML 订阅配置。"""
     nodes_sorted = sorted(nodes, key=lambda n: (not n.alive, n.latency or 9999))
 
     proxy_names = ", ".join(f'"{n.name}"' for n in nodes_sorted if n.alive)[:250]
-    proxy_names_select = "
-      ".join(f'- "{n.name}"' for n in nodes_sorted[:50])
+    proxy_names_select = chr(10) + "      ".join(f'- "{n.name}"' for n in nodes_sorted[:50])
 
     yaml_nodes_list = []
     for n in nodes_sorted:
         yaml_nodes_list.append(_node_to_yaml(n))
 
-    yaml_block = "
-".join(yaml_nodes_list)
+    yaml_block = chr(10).join(yaml_nodes_list)
 
     return CLASH_TEMPLATE.format(
         datetime=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
@@ -598,7 +591,6 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
 
 
 def _node_to_yaml(n: Node) -> str:
-    """单节点 → Clash Meta YAML。"""
     latency_tag = f" [{n.latency}ms]" if n.alive else ""
     name = f"{n.name}{latency_tag}"
 
@@ -692,13 +684,11 @@ async def main():
 
     connector = aiohttp.TCPConnector(limit=50, limit_per_host=10, ttl_dns_cache=300)
     async with aiohttp.ClientSession(connector=connector) as session:
-        # 1. 爬取
         fresh = await crawl_sources(session)
         if not fresh:
             log.error("No nodes crawled — aborting.")
             return
 
-        # 2. 加载历史存档（去重补充）
         old = load_archives()
         merged: dict[str, Node] = {}
         for n in old.values():
@@ -712,20 +702,16 @@ async def main():
         all_nodes = list(merged.values())
         log.info("After merge: %d (fresh %d + old %d)", len(all_nodes), len(fresh), len(old))
 
-        # 3. 测试
         alive = await test_nodes(all_nodes)
 
-        # 4. 存档
         save_archive(all_nodes)
         prune_archives()
 
-        # 5. 生成订阅
         archive_count = len(list(ARCHIVE_DIR.glob("nodes_*.json")))
         yaml_out = generate_subscription(all_nodes, archive_count)
         (OUTPUT_DIR / "clash.yaml").write_text(yaml_out, encoding="utf-8")
 
-        uri_list = "
-".join(n.uri for n in alive[:500])
+        uri_list = chr(10).join(n.uri for n in alive[:500])
         b64_out = base64.b64encode(uri_list.encode()).decode()
         (OUTPUT_DIR / "sub.txt").write_text(b64_out, encoding="utf-8")
         (OUTPUT_DIR / "uris.txt").write_text(uri_list, encoding="utf-8")
