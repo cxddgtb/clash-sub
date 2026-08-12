@@ -675,81 +675,97 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
 
 def _node_to_yaml(n: Node) -> str:
     name = _yaml_str(_display_name(n))
-    if n.protocol == "vmess":
-        info = parse_vmess_uri(n.uri)
-        if not isinstance(info, dict):
-            info = {}
-        return f"""  - name: "{name}"
+    server = n.server
+    port = n.port
+    
+    # 终极防御：捕获 urlparse 解析畸形 URI (如 Invalid IPv6 URL) 引发的 ValueError，
+    # 防止在生成最后 yaml 时整个脚本崩溃
+    try:
+        if n.protocol == "vmess":
+            info = parse_vmess_uri(n.uri)
+            if not isinstance(info, dict):
+                info = {}
+            return f"""  - name: "{name}"
     type: vmess
-    server: {n.server}
-    port: {n.port}
+    server: {server}
+    port: {port}
     uuid: {info.get('id') or ''}
     alterId: {safe_int(info.get('aid'), 0)}
     cipher: {info.get('type') or 'auto'}
     udp: true"""
-    elif n.protocol == "vless":
+            
         u = urlparse(n.uri)
-        params = dict(p.split("=", 1) for p in u.query.split("&") if "=" in p)
-        return f"""  - name: "{name}"
+        params = dict(p.split("=", 1) for p in u.query.split("&") if "=" in p) if u.query else {}
+        
+        if n.protocol == "vless":
+            return f"""  - name: "{name}"
     type: vless
-    server: {n.server}
-    port: {n.port}
+    server: {server}
+    port: {port}
     uuid: {u.username or ''}
     udp: true
     tls: {params.get('security') == 'tls'}
     network: {params.get('type') or 'tcp'}"""
-    elif n.protocol == "trojan":
-        u = urlparse(n.uri)
-        return f"""  - name: "{name}"
+            
+        elif n.protocol == "trojan":
+            return f"""  - name: "{name}"
     type: trojan
-    server: {n.server}
-    port: {n.port}
+    server: {server}
+    port: {port}
     password: "{u.username or ''}"
     udp: true"""
-    elif n.protocol in ("ss", "ssr"):
-        u = urlparse(n.uri)
-        user = u.username or ""
-        pw = u.password or ""
-        if "@" not in n.uri[len("ss://"):]:
-            try:
-                b64 = n.uri.split("://")[1].split("#")[0]
-                b64 += "=" * (4 - len(b64) % 4)
-                decoded = base64.b64decode(b64).decode()
-                method_pw = decoded.rsplit("@", 1)[0]
-                user, pw = method_pw.split(":", 1)
-            except BaseException:
-                pass
-        return f"""  - name: "{name}"
+            
+        elif n.protocol in ("ss", "ssr"):
+            user = u.username or ""
+            pw = u.password or ""
+            if "@" not in n.uri[len("ss://"):]:
+                try:
+                    b64 = n.uri.split("://")[1].split("#")[0]
+                    b64 += "=" * (4 - len(b64) % 4)
+                    decoded = base64.b64decode(b64).decode()
+                    method_pw = decoded.rsplit("@", 1)[0]
+                    user, pw = method_pw.split(":", 1)
+                except BaseException:
+                    pass
+            return f"""  - name: "{name}"
     type: ss
-    server: {n.server}
-    port: {n.port}
+    server: {server}
+    port: {port}
     cipher: {user or 'aes-256-gcm'}
     password: "{pw or ''}"
     udp: true"""
-    elif n.protocol in ("hysteria2", "hy2", "hysteria"):
-        u = urlparse(n.uri)
-        return f"""  - name: "{name}"
+            
+        elif n.protocol in ("hysteria2", "hy2", "hysteria"):
+            return f"""  - name: "{name}"
     type: hysteria2
-    server: {n.server}
-    port: {n.port}
+    server: {server}
+    port: {port}
     password: "{u.username or ''}"
     up: "50 Mbps"
     down: "200 Mbps"
-    sni: {u.hostname or n.server}
+    sni: {u.hostname or server}
     skip-cert-verify: true"""
-    elif n.protocol == "tuic":
-        u = urlparse(n.uri)
-        return f"""  - name: "{name}"
+            
+        elif n.protocol == "tuic":
+            return f"""  - name: "{name}"
     type: tuic
-    server: {n.server}
-    port: {n.port}
+    server: {server}
+    port: {port}
     uuid: "{u.username or ''}"
     password: "{u.password or ''}"
     udp-relay-mode: native"""
-    return f"""  - name: "{name}"
+            
+        return f"""  - name: "{name}"
     type: {n.protocol}
-    server: {n.server}
-    port: {n.port}"""
+    server: {server}
+    port: {port}"""
+            
+    except BaseException:
+        # 遇到畸形 URI (Invalid IPv6 URL) 崩溃时，回退到基础输出，保证订阅整体可用
+        return f"""  - name: "{name}"
+    type: {n.protocol}
+    server: {server}
+    port: {port}"""
 
 # ══════════════════════════════════════════════════════════
 # Main
