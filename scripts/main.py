@@ -14,7 +14,9 @@ import os
 import re
 import socket
 import ssl
+import sys
 import time
+import traceback
 import yaml
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta, timezone
@@ -33,12 +35,19 @@ log = logging.getLogger("harvest")
 ARCHIVE_DIR    = Path(os.getenv("ARCHIVE_DIR", "archives"))
 OUTPUT_DIR     = Path(os.getenv("OUTPUT_DIR", "output"))
 MAX_ARCHIVE    = int(os.getenv("MAX_ARCHIVE_FILES", "5"))
-TEST_TIMEOUT   = int(os.getenv("TEST_TIMEOUT", "8"))      # 每个节点测试超时秒数
-MAX_CONCURRENT = int(os.getenv("MAX_CONCURRENT", "80"))   # 并发测试数
+TEST_TIMEOUT   = int(os.getenv("TEST_TIMEOUT", "8"))
+MAX_CONCURRENT = int(os.getenv("MAX_CONCURRENT", "80"))
 REPO_BRANCH    = os.getenv("GITHUB_REF_NAME", "main")
 REPO_OWNER     = os.getenv("GITHUB_REPOSITORY_OWNER", "qoder")
 REPO_NAME      = os.getenv("GITHUB_REPOSITORY", "qoder/clash-sub").split("/")[-1]
-MAX_OUTPUT_NODES = 500                                    # 最大输出节点数
+MAX_OUTPUT_NODES = 500
+
+def safe_int(val, default=0):
+    """安全转换为 int，避免 ValueError/TypeError 导致脚本崩溃"""
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return default
 
 # ── 爬取源配置 ──────────────────────────────────
 DEFAULT_SOURCES = [
@@ -99,16 +108,14 @@ class Node:
         return self.latency is not None and self.latency < 5000
 
 # ══════════════════════════════════════════════════════════
-# 名称工具（代理组与节点列表名称必须完全一致）
+# 名称工具
 # ══════════════════════════════════════════════════════════
 
 def _display_name(n: Node) -> str:
-    """节点显示名称（含延迟标签）。代理组和节点列表共用，保证引用一致。"""
     latency_tag = f" [{n.latency}ms]" if n.alive else ""
     return f"{n.name}{latency_tag}"
 
 def _yaml_str(s: str) -> str:
-    """转义 YAML 双引号字符串中的特殊字符，防止节点名含引号/换行导致配置损坏。"""
     return (s.replace("\\", "\\\\")
              .replace('"', '\\"')
              .replace("\n", " ")
@@ -183,7 +190,7 @@ def _extract_ss(uri: str) -> Optional[dict]:
         method_pw, server_part = decoded.rsplit("@", 1)
         host, port = server_part.rsplit(":", 1)
         name = body.split("#", 1)[1] if "#" in body else ""
-        return {"name": quote_plus(name), "server": host, "port": int(port)}
+        return {"name": quote_plus(name), "server": host, "port": safe_int(port, 8388)}
     except Exception:
         return None
 
@@ -203,7 +210,7 @@ def parse_node(uri: str, source: str) -> Optional[Node]:
         protocol=proto,
         name=name,
         server=info["server"],
-        port=int(info.get("port", 443)),
+        port=safe_int(info.get("port"), 443),
         source=source,
         first_seen=datetime.now(timezone.utc).isoformat(),
         last_seen=datetime.now(timezone.utc).isoformat(),
@@ -268,7 +275,7 @@ def _add_yaml_proxy(proxy: dict, source: str, nodes: dict[str, Node]):
 
     n = Node(
         uri=uri, protocol=proto, name=name, server=server,
-        port=int(port), source=source,
+        port=safe_int(port, 443), source=source,
         first_seen=datetime.now(timezone.utc).isoformat(),
         last_seen=datetime.now(timezone.utc).isoformat(),
     )
@@ -343,8 +350,6 @@ def prune_archives():
 
 # ══════════════════════════════════════════════════════════
 # 输出：Clash Meta / Mihomo 订阅配置
-# 修复：移除 geodata-mode / geox-url，GEOSITE 改为纯域名规则，
-#       客户端无需联网下载 GeoIP/GeoSite 数据库，离线即可加载。
 # ══════════════════════════════════════════════════════════
 
 CLASH_TEMPLATE = """# ═══ Clash Meta 自动订阅 ═══
@@ -595,13 +600,8 @@ proxies:
 """
 
 def generate_subscription(nodes: list[Node], archive_count: int) -> str:
-    # 只获取存活节点
     alive_nodes = [n for n in nodes if n.alive]
-
-    # 存活节点按延迟从低到高排序
     alive_nodes.sort(key=lambda n: n.latency or 9999)
-
-    # 按显示名称去重，防止 Clash 报 "duplicate proxy name" 错误
     seen: set[str] = set()
     unique_nodes: list[Node] = []
     for n in alive_nodes:
@@ -610,26 +610,18 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
             continue
         seen.add(dn)
         unique_nodes.append(n)
-
-    # 只取前 500 个存活节点，不用死亡节点补足
     top_nodes = unique_nodes[:MAX_OUTPUT_NODES]
-
-    # 代理组引用的名称与节点列表完全一致（都带延迟标签）
     proxy_names_list = [f'- "{_yaml_str(_display_name(n))}"' for n in top_nodes]
     if not proxy_names_list:
         proxy_names_list = ['- "DIRECT"']
     proxy_names = "\n      ".join(proxy_names_list)
-
     select_list = [f'- "{_yaml_str(_display_name(n))}"' for n in top_nodes]
     if not select_list:
         proxy_names_select = ""
     else:
         proxy_names_select = "\n      ".join(select_list)
-
-    # YAML 节点列表：只输出这 500 个存活节点
     yaml_nodes_list = [_node_to_yaml(n) for n in top_nodes]
     yaml_block = "\n".join(yaml_nodes_list)
-
     return CLASH_TEMPLATE.format(
         datetime=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
         total=len(nodes),
@@ -642,20 +634,19 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     )
 
 def _node_to_yaml(n: Node) -> str:
-    # 使用与代理组完全一致的显示名称
     name = _yaml_str(_display_name(n))
-
     if n.protocol == "vmess":
-        info = parse_vmess_uri(n.uri) or {}
+        info = parse_vmess_uri(n.uri)
+        if not isinstance(info, dict):
+            info = {}
         return f"""  - name: "{name}"
     type: vmess
     server: {n.server}
     port: {n.port}
     uuid: {info.get('id','')}
-    alterId: {int(info.get('aid',0))}
+    alterId: {safe_int(info.get('aid'), 0)}
     cipher: {info.get('type','auto')}
     udp: true"""
-
     elif n.protocol == "vless":
         u = urlparse(n.uri)
         params = dict(p.split("=", 1) for p in u.query.split("&") if "=" in p)
@@ -667,7 +658,6 @@ def _node_to_yaml(n: Node) -> str:
     udp: true
     tls: {params.get('security') == 'tls'}
     network: {params.get('type','tcp')}"""
-
     elif n.protocol == "trojan":
         u = urlparse(n.uri)
         return f"""  - name: "{name}"
@@ -676,7 +666,6 @@ def _node_to_yaml(n: Node) -> str:
     port: {n.port}
     password: "{u.username or ''}"
     udp: true"""
-
     elif n.protocol in ("ss", "ssr"):
         u = urlparse(n.uri)
         user = u.username or ""
@@ -697,7 +686,6 @@ def _node_to_yaml(n: Node) -> str:
     cipher: {user or 'aes-256-gcm'}
     password: "{pw or ''}"
     udp: true"""
-
     elif n.protocol in ("hysteria2", "hy2", "hysteria"):
         u = urlparse(n.uri)
         return f"""  - name: "{name}"
@@ -709,7 +697,6 @@ def _node_to_yaml(n: Node) -> str:
     down: "200 Mbps"
     sni: {u.hostname or n.server}
     skip-cert-verify: true"""
-
     elif n.protocol == "tuic":
         u = urlparse(n.uri)
         return f"""  - name: "{name}"
@@ -719,7 +706,6 @@ def _node_to_yaml(n: Node) -> str:
     uuid: "{u.username or ''}"
     password: "{u.password or ''}"
     udp-relay-mode: native"""
-
     return f"""  - name: "{name}"
     type: {n.protocol}
     server: {n.server}
@@ -731,14 +717,12 @@ def _node_to_yaml(n: Node) -> str:
 
 async def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
     connector = aiohttp.TCPConnector(limit=50, limit_per_host=10, ttl_dns_cache=300)
     async with aiohttp.ClientSession(connector=connector) as session:
         fresh = await crawl_sources(session)
         if not fresh:
             log.error("No nodes crawled — aborting.")
             return
-
         old = load_archives()
         merged: dict[str, Node] = {}
         for n in old.values():
@@ -751,24 +735,17 @@ async def main():
                 merged[n.fingerprint] = n
         all_nodes = list(merged.values())
         log.info("After merge: %d (fresh %d + old %d)", len(all_nodes), len(fresh), len(old))
-
         alive = await test_nodes(all_nodes)
-        # 对存活节点按延迟从低到高排序
         alive.sort(key=lambda n: n.latency or 9999)
-
         save_archive(all_nodes)
         prune_archives()
-
         archive_count = len(list(ARCHIVE_DIR.glob("nodes_*.json")))
         yaml_out = generate_subscription(all_nodes, archive_count)
         (OUTPUT_DIR / "clash.yaml").write_text(yaml_out, encoding="utf-8")
-
-        # 输出 Base64 和纯文本时，只取前 500 个存活节点
         uri_list = chr(10).join(n.uri for n in alive[:MAX_OUTPUT_NODES])
         b64_out = base64.b64encode(uri_list.encode()).decode()
         (OUTPUT_DIR / "sub.txt").write_text(b64_out, encoding="utf-8")
         (OUTPUT_DIR / "uris.txt").write_text(uri_list, encoding="utf-8")
-
         html = f"""<!DOCTYPE html>
 <html lang="zh">
 <head>
@@ -805,9 +782,13 @@ th {{ color: #888; font-weight: 600; font-size: 0.85rem; }}
 </body>
 </html>"""
         (OUTPUT_DIR / "index.html").write_text(html, encoding="utf-8")
-
         log.info("Output written to %s/", OUTPUT_DIR)
         log.info("Subscription URL: https://%s.github.io/%s/clash.yaml", REPO_OWNER, REPO_NAME)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        log.error("❌ 脚本崩溃: %s", e)
+        traceback.print_exc()
+        sys.exit(1)
