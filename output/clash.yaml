@@ -1,0 +1,382 @@
+# ═══ Clash Meta 自动订阅 ═══
+# 更新时间: 2026-08-12 14:34:04 UTC
+# 节点总数: 22 (本次存活: 10)
+# 存档去重覆盖天数: ~1d
+
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+external-controller: '0.0.0.0:9090'
+ipv6: true
+unified-delay: true
+tcp-concurrent: true
+geodata-mode: true
+geox-url:
+  geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat"
+  geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
+  mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
+
+profile:
+  store-selected: true
+  store-fake-ip: true
+
+# ── DNS ──
+dns:
+  enable: true
+  ipv6: true
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - '*.localhost'
+    - '*.home.arpa'
+    - time.*.com
+    - time.*.apple.com
+    - swscan.apple.com
+    - mesu.apple.com
+    - gspe*.*.apple.com
+    - '*.msftconnecttest.com'
+    - '*.msftncsi.com'
+    - '*.stun.*'
+    - '+.stun.*.*'
+    - '+.stun.*.*.*'
+    - '+.stun.*.*.*.*'
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - 114.114.114.114
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+    - https://doh.360.cn/dns-query
+  fallback:
+    - https://1.0.0.1/dns-query
+    - https://8.8.4.4/dns-query
+    - tls://dns.google:853
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+
+# ── 代理组 ──
+proxy-groups:
+  - name: "🚀 自动选择"
+    type: url-test
+    proxies: "🇺🇸_US_美国->🇩🇪_DE_德国", "🇺🇸_US_美国_1", "🇩🇪_DE_德国->🇧🇷_BR_巴西", "🇺🇸_US_美国", "🇫🇷_FR_法国", "🇭🇰 香港5|@ripaojiedian", "🇭🇰_HK_中国香港->🇯🇵_JP_日本", "🇨🇳_CN_中国", "🇭🇰 香港|@ripaojiedian", "🇨🇳_CN_中国->🇭🇰_HK_中国香港"
+    url: 'https://www.gstatic.com/generate_204'
+    interval: 300
+    tolerance: 50
+
+  - name: "🌍 手动切换"
+    type: select
+    proxies:
+      - "🚀 自动选择"
+      - DIRECT
+      
+- "🇺🇸_US_美国->🇩🇪_DE_德国"      - "🇺🇸_US_美国_1"      - "🇩🇪_DE_德国->🇧🇷_BR_巴西"      - "🇺🇸_US_美国"      - "🇫🇷_FR_法国"      - "🇭🇰 香港5|@ripaojiedian"      - "🇭🇰_HK_中国香港->🇯🇵_JP_日本"      - "🇨🇳_CN_中国"      - "🇭🇰 香港|@ripaojiedian"      - "🇨🇳_CN_中国->🇭🇰_HK_中国香港"      - "tg频道:@ripaojiedian"      - "🇭🇰 香港3|@ripaojiedian"      - "🇭🇰 香港4|@ripaojiedian"      - "🇯🇵 日本|@ripaojiedian"      - "🇯🇵 日本2|@ripaojiedian"      - "🇯🇵 日本3|@ripaojiedian"      - "🇸🇬 新加坡|@ripaojiedian"      - "🇸🇬 新加坡2|@ripaojiedian"      - "🇸🇬 新加坡3|@ripaojiedian"      - "🇺🇸 美国|@ripaojiedian"      - "🇺🇸 美国2|@ripaojiedian"      - "🇺🇸 美国3|@ripaojiedian"
+
+  - name: "📺 流媒体"
+    type: select
+    proxies:
+      - "🚀 自动选择"
+      - "🌍 手动切换"
+      - DIRECT
+
+  - name: "🎯 全球直连"
+    type: select
+    proxies:
+      - DIRECT
+      - "🚀 自动选择"
+
+  - name: "🛡️ 广告拦截"
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+
+  - name: "🐟 漏网之鱼"
+    type: select
+    proxies:
+      - "🚀 自动选择"
+      - DIRECT
+
+# ── 规则 ──
+rules:
+  # 广告
+  - DOMAIN-KEYWORD,admarvel,🛡️ 广告拦截
+  - DOMAIN-KEYWORD,admaster,🛡️ 广告拦截
+  - DOMAIN-KEYWORD,adsage,🛡️ 广告拦截
+  - DOMAIN-KEYWORD,adsmogo,🛡️ 广告拦截
+  - DOMAIN-KEYWORD,adsrvmedia,🛡️ 广告拦截
+  - DOMAIN-KEYWORD,adwords,🛡️ 广告拦截
+  - DOMAIN-KEYWORD,adservice,🛡️ 广告拦截
+  - DOMAIN-SUFFIX,ads.google.com,🛡️ 广告拦截
+  - DOMAIN-SUFFIX,doubleclick.net,🛡️ 广告拦截
+  - GEOSITE,category-ads-all,🛡️ 广告拦截
+
+  # 国内直连
+  - GEOIP,CN,🎯 全球直连
+  - GEOSITE,CN,🎯 全球直连
+  - GEOSITE,category-games@cn,🎯 全球直连
+  - DOMAIN-SUFFIX,cn,🎯 全球直连
+  - DOMAIN-SUFFIX,baidu.com,🎯 全球直连
+  - DOMAIN-SUFFIX,bilibili.com,🎯 全球直连
+  - DOMAIN-SUFFIX,weixin.qq.com,🎯 全球直连
+  - DOMAIN-SUFFIX,qcloud.com,🎯 全球直连
+  - DOMAIN-SUFFIX,myqcloud.com,🎯 全球直连
+  - DOMAIN-SUFFIX,alipay.com,🎯 全球直连
+  - DOMAIN-SUFFIX,alipayobjects.com,🎯 全球直连
+
+  # AI / Copilot
+  - DOMAIN-SUFFIX,openai.com,🚀 自动选择
+  - DOMAIN-SUFFIX,chatgpt.com,🚀 自动选择
+  - DOMAIN-SUFFIX,oaistatic.com,🚀 自动选择
+  - DOMAIN-SUFFIX,oaiusercontent.com,🚀 自动选择
+  - DOMAIN-SUFFIX,claude.ai,🚀 自动选择
+  - DOMAIN-SUFFIX,anthropic.com,🚀 自动选择
+  - DOMAIN-SUFFIX,githubcopilot.com,🚀 自动选择
+  - DOMAIN-SUFFIX,bing.com,🚀 自动选择
+  - DOMAIN-KEYWORD,openai,🚀 自动选择
+
+  # Google
+  - DOMAIN-SUFFIX,google.com,🚀 自动选择
+  - DOMAIN-SUFFIX,googleapis.com,🚀 自动选择
+  - DOMAIN-SUFFIX,googleusercontent.com,🚀 自动选择
+  - DOMAIN-SUFFIX,gstatic.com,🚀 自动选择
+  - DOMAIN-SUFFIX,googlevideo.com,🚀 自动选择
+  - DOMAIN-SUFFIX,googlemail.com,🚀 自动选择
+  - DOMAIN-SUFFIX,gmail.com,🚀 自动选择
+  - DOMAIN-SUFFIX,google.com.hk,🚀 自动选择
+  - DOMAIN-SUFFIX,google.com.tw,🚀 自动选择
+
+  # YouTube
+  - DOMAIN-SUFFIX,youtube.com,🚀 自动选择
+  - DOMAIN-SUFFIX,ytimg.com,🚀 自动选择
+  - DOMAIN-SUFFIX,ggpht.com,🚀 自动选择
+  - DOMAIN-SUFFIX,googlevideo.com,🚀 自动选择
+  - DOMAIN-SUFFIX,youtu.be,🚀 自动选择
+  - DOMAIN-KEYWORD,youtube,🚀 自动选择
+
+  # Meta
+  - DOMAIN-SUFFIX,facebook.com,🚀 自动选择
+  - DOMAIN-SUFFIX,fbcdn.net,🚀 自动选择
+  - DOMAIN-SUFFIX,instagram.com,🚀 自动选择
+  - DOMAIN-SUFFIX,cdninstagram.com,🚀 自动选择
+  - DOMAIN-SUFFIX,whatsapp.com,🚀 自动选择
+  - DOMAIN-SUFFIX,whatsapp.net,🚀 自动选择
+  - DOMAIN-SUFFIX,messenger.com,🚀 自动选择
+  - DOMAIN-SUFFIX,threads.net,🚀 自动选择
+
+  # X / Twitter
+  - DOMAIN-SUFFIX,x.com,🚀 自动选择
+  - DOMAIN-SUFFIX,twitter.com,🚀 自动选择
+  - DOMAIN-SUFFIX,t.co,🚀 自动选择
+  - DOMAIN-SUFFIX,twimg.com,🚀 自动选择
+
+  # Telegram
+  - DOMAIN-SUFFIX,telegram.org,🚀 自动选择
+  - DOMAIN-SUFFIX,t.me,🚀 自动选择
+  - DOMAIN-SUFFIX,tdesktop.com,🚀 自动选择
+  - DOMAIN-SUFFIX,telegram.me,🚀 自动选择
+  - IP-CIDR,91.108.56.0/22,🚀 自动选择
+  - IP-CIDR,91.108.4.0/22,🚀 自动选择
+  - IP-CIDR,91.108.8.0/22,🚀 自动选择
+  - IP-CIDR,109.239.140.0/24,🚀 自动选择
+  - IP-CIDR,149.154.160.0/20,🚀 自动选择
+
+  # GitHub
+  - DOMAIN-SUFFIX,github.com,🚀 自动选择
+  - DOMAIN-SUFFIX,github.io,🚀 自动选择
+  - DOMAIN-SUFFIX,githubassets.com,🚀 自动选择
+  - DOMAIN-SUFFIX,githubusercontent.com,🚀 自动选择
+
+  # Streaming
+  - DOMAIN-SUFFIX,netflix.com,📺 流媒体
+  - DOMAIN-SUFFIX,nflxvideo.net,📺 流媒体
+  - DOMAIN-SUFFIX,nflximg.com,📺 流媒体
+  - DOMAIN-SUFFIX,nflxext.com,📺 流媒体
+  - DOMAIN-SUFFIX,disneyplus.com,📺 流媒体
+  - DOMAIN-SUFFIX,dssott.com,📺 流媒体
+  - DOMAIN-SUFFIX,hulu.com,📺 流媒体
+  - DOMAIN-SUFFIX,hbomax.com,📺 流媒体
+  - DOMAIN-SUFFIX,hbo.com,📺 流媒体
+  - DOMAIN-SUFFIX,spotify.com,📺 流媒体
+  - DOMAIN-SUFFIX,scdn.co,📺 流媒体
+  - DOMAIN-SUFFIX,tidal.com,📺 流媒体
+  - DOMAIN-SUFFIX,primevideo.com,📺 流媒体
+
+  # Apple
+  - DOMAIN-SUFFIX,apple.com,🎯 全球直连
+  - DOMAIN-SUFFIX,icloud.com,🎯 全球直连
+  - DOMAIN-SUFFIX,apple-dns.net,🎯 全球直连
+  - DOMAIN-SUFFIX,mzstatic.com,🎯 全球直连
+
+  # Microsoft
+  - DOMAIN-SUFFIX,microsoft.com,🎯 全球直连
+  - DOMAIN-SUFFIX,live.com,🎯 全球直连
+  - DOMAIN-SUFFIX,office.com,🎯 全球直连
+  - DOMAIN-SUFFIX,office.net,🎯 全球直连
+
+  # LAN 局域网
+  - IP-CIDR,10.0.0.0/8,🎯 全球直连
+  - IP-CIDR,172.16.0.0/12,🎯 全球直连
+  - IP-CIDR,192.168.0.0/16,🎯 全球直连
+  - IP-CIDR,127.0.0.0/8,🎯 全球直连
+
+  # Final
+  - MATCH,🐟 漏网之鱼
+
+# ── 代理节点 ──
+proxies:
+  - name: "🇺🇸_US_美国->🇩🇪_DE_德国 [3ms]"
+    type: vless
+    server: 104.25.194.196
+    port: 2086
+    uuid: e3c7c198-2b02-42c2-b78f-22dfc078219c
+    udp: true
+    tls: False
+    network: ws
+  - name: "🇺🇸_US_美国_1 [3ms]"
+    type: vless
+    server: 172.67.209.127
+    port: 8880
+    uuid: 942bdcfc-e522-44f1-b899-3bd8db7c5ae2
+    udp: true
+    tls: False
+    network: ws
+  - name: "🇩🇪_DE_德国->🇧🇷_BR_巴西 [88ms]"
+    type: vless
+    server: 18.198.227.161
+    port: 443
+    uuid: 4f375fb4-3c95-425f-bc7b-8085487a6f3c
+    udp: true
+    tls: False
+    network: ws
+  - name: "🇺🇸_US_美国 [96ms]"
+    type: vmess
+    server: guanwang.awsno.com
+    port: 443
+    uuid: 6a89a215-22bf-4bd7-9642-b95b2e09583a
+    alterId: 0
+    cipher: auto
+    udp: true
+  - name: "🇫🇷_FR_法国 [159ms]"
+    type: vless
+    server: fr199.mechvpn.online
+    port: 443
+    uuid: 53c76647-14d1-4df5-99cb-be99ad2e6bd9
+    udp: true
+    tls: False
+    network: tcp
+  - name: "🇭🇰 香港5|@ripaojiedian [206ms]"
+    type: trojan
+    server: 18.162.120.218
+    port: 11035
+    password: "BxceQaOe"
+    udp: true
+  - name: "🇭🇰_HK_中国香港->🇯🇵_JP_日本 [256ms]"
+    type: trojan
+    server: oplosgru-c.catcat321.com
+    port: 20004
+    password: "ba07a8af-5544-48ac-ab62-3b6c00a44fa6"
+    udp: true
+  - name: "🇨🇳_CN_中国 [271ms]"
+    type: vless
+    server: 120.227.1.43
+    port: 12528
+    uuid: f0169b08-43fd-4dc3-8195-18f6ad2fe39d
+    udp: true
+    tls: False
+    network: tcp
+  - name: "🇭🇰 香港|@ripaojiedian [319ms]"
+    type: vmess
+    server: v10.hdacd.com
+    port: 30807
+    uuid: cbb3f877-d1fb-344c-87a9-d153bffd5484
+    alterId: 2
+    cipher: auto
+    udp: true
+  - name: "🇨🇳_CN_中国->🇭🇰_HK_中国香港 [350ms]"
+    type: vmess
+    server: v9.hdacd.com
+    port: 30809
+    uuid: cbb3f877-d1fb-344c-87a9-d153bffd5484
+    alterId: 2
+    cipher: auto
+    udp: true
+  - name: "tg频道:@ripaojiedian"
+    type: ss
+    server: 63.180.254.10
+    port: 443
+    cipher: aes-256-cfb
+    password: "amazonskr05"
+    udp: true
+  - name: "🇭🇰 香港3|@ripaojiedian"
+    type: trojan
+    server: 16.162.100.124
+    port: 11231
+    password: "6ec301428255a78a1d826988d86cc87e"
+    udp: true
+  - name: "🇭🇰 香港4|@ripaojiedian"
+    type: trojan
+    server: 18.162.244.203
+    port: 11035
+    password: "BxceQaOe"
+    udp: true
+  - name: "🇯🇵 日本|@ripaojiedian"
+    type: trojan
+    server: 16.162.100.124
+    port: 4099
+    password: "BxceQaOe"
+    udp: true
+  - name: "🇯🇵 日本2|@ripaojiedian"
+    type: trojan
+    server: 16.162.192.182
+    port: 44229
+    password: "6ec301428255a78a1d826988d86cc87e"
+    udp: true
+  - name: "🇯🇵 日本3|@ripaojiedian"
+    type: trojan
+    server: 16.162.192.182
+    port: 18286
+    password: "6ec301428255a78a1d826988d86cc87e"
+    udp: true
+  - name: "🇸🇬 新加坡|@ripaojiedian"
+    type: trojan
+    server: 16.162.100.124
+    port: 32434
+    password: "6ec301428255a78a1d826988d86cc87e"
+    udp: true
+  - name: "🇸🇬 新加坡2|@ripaojiedian"
+    type: trojan
+    server: 16.162.192.182
+    port: 45744
+    password: "6ec301428255a78a1d826988d86cc87e"
+    udp: true
+  - name: "🇸🇬 新加坡3|@ripaojiedian"
+    type: trojan
+    server: 18.163.126.92
+    port: 26704
+    password: "BxceQaOe"
+    udp: true
+  - name: "🇺🇸 美国|@ripaojiedian"
+    type: trojan
+    server: 95.40.14.234
+    port: 28051
+    password: "6ec301428255a78a1d826988d86cc87e"
+    udp: true
+  - name: "🇺🇸 美国2|@ripaojiedian"
+    type: trojan
+    server: 16.162.100.124
+    port: 10418
+    password: "6ec301428255a78a1d826988d86cc87e"
+    udp: true
+  - name: "🇺🇸 美国3|@ripaojiedian"
+    type: trojan
+    server: 16.162.100.124
+    port: 28051
+    password: "BxceQaOe"
+    udp: true
