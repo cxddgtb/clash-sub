@@ -38,6 +38,7 @@ MAX_CONCURRENT = int(os.getenv("MAX_CONCURRENT", "80"))   # 并发测试数
 REPO_BRANCH    = os.getenv("GITHUB_REF_NAME", "main")
 REPO_OWNER     = os.getenv("GITHUB_REPOSITORY_OWNER", "qoder")
 REPO_NAME      = os.getenv("GITHUB_REPOSITORY", "qoder/clash-sub").split("/")[-1]
+MAX_OUTPUT_NODES = 500                                    # 最大输出节点数
 
 # ── 爬取源配置 ──────────────────────────────────
 # 默认节点源（作为后备）
@@ -330,6 +331,7 @@ def prune_archives():
 CLASH_TEMPLATE = """# ═══ Clash Meta 自动订阅 ═══
 # 更新时间: {datetime}
 # 节点总数: {total} (本次存活: {alive})
+# 输出节点数: {output_count} (延迟优先)
 # 存档去重覆盖天数: ~{days}d
 
 mixed-port: 7890
@@ -564,30 +566,37 @@ proxies:
 """
 
 def generate_subscription(nodes: list[Node], archive_count: int) -> str:
-    nodes_sorted = sorted(nodes, key=lambda n: (not n.alive, n.latency or 9999))
+    # 只获取存活节点
+    alive_nodes = [n for n in nodes if n.alive]
+    
+    # 存活节点按延迟从低到高排序
+    alive_nodes.sort(key=lambda n: n.latency or 9999)
+    
+    # 只取前 500 个存活节点，不用死亡节点补足
+    top_nodes = alive_nodes[:MAX_OUTPUT_NODES]
 
-    # 修复：生成正确的 YAML 列表，而不是逗号分隔的字符串
-    proxy_names_list = [f'- "{n.name}"' for n in nodes_sorted if n.alive][:100]
+    # 自动选择组：使用这 500 个存活节点
+    proxy_names_list = [f'- "{n.name}"' for n in top_nodes]
     if not proxy_names_list:
         proxy_names_list = ['- "DIRECT"']
     proxy_names = "\n      ".join(proxy_names_list)
 
-    select_list = [f'- "{n.name}"' for n in nodes_sorted[:50]]
+    # 手动切换组：使用这 500 个存活节点
+    select_list = [f'- "{n.name}"' for n in top_nodes]
     if not select_list:
         proxy_names_select = ""
     else:
         proxy_names_select = "\n      ".join(select_list)
 
-    yaml_nodes_list = []
-    for n in nodes_sorted:
-        yaml_nodes_list.append(_node_to_yaml(n))
-
+    # YAML 节点列表：只输出这 500 个存活节点
+    yaml_nodes_list = [_node_to_yaml(n) for n in top_nodes]
     yaml_block = "\n".join(yaml_nodes_list)
 
     return CLASH_TEMPLATE.format(
         datetime=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
         total=len(nodes),
-        alive=sum(1 for n in nodes if n.alive),
+        alive=len(alive_nodes),
+        output_count=len(top_nodes),
         days=archive_count,
         proxy_names=proxy_names,
         proxy_names_select=proxy_names_select,
@@ -706,6 +715,8 @@ async def main():
         log.info("After merge: %d (fresh %d + old %d)", len(all_nodes), len(fresh), len(old))
 
         alive = await test_nodes(all_nodes)
+        # 对存活节点按延迟从低到高排序
+        alive.sort(key=lambda n: n.latency or 9999)
 
         save_archive(all_nodes)
         prune_archives()
@@ -714,7 +725,8 @@ async def main():
         yaml_out = generate_subscription(all_nodes, archive_count)
         (OUTPUT_DIR / "clash.yaml").write_text(yaml_out, encoding="utf-8")
 
-        uri_list = chr(10).join(n.uri for n in alive[:500])
+        # 输出 Base64 和纯文本时，只取前 500 个存活节点
+        uri_list = chr(10).join(n.uri for n in alive[:MAX_OUTPUT_NODES])
         b64_out = base64.b64encode(uri_list.encode()).decode()
         (OUTPUT_DIR / "sub.txt").write_text(b64_out, encoding="utf-8")
         (OUTPUT_DIR / "uris.txt").write_text(uri_list, encoding="utf-8")
@@ -749,6 +761,7 @@ th {{ color: #888; font-weight: 600; font-size: 0.85rem; }}
 <tbody>
 <tr><td>总节点</td><td>{len(all_nodes)}</td></tr>
 <tr><td>存活节点</td><td>{len(alive)}</td></tr>
+<tr><td>输出节点数</td><td>{len(alive[:MAX_OUTPUT_NODES])} (延迟优先)</td></tr>
 <tr><td>存档数量</td><td>{archive_count}</td></tr>
 </tbody></table>
 </body>
