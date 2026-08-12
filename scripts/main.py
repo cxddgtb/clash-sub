@@ -304,7 +304,7 @@ async def test_nodes(nodes: list[Node]) -> list[Node]:
     return alive
 
 # ══════════════════════════════════════════════════════════
-# 存档系统（修复：保存/读取格式不一致导致的“存档损坏”误报）
+# 存档系统
 # ══════════════════════════════════════════════════════════
 
 def load_archives() -> dict[str, Node]:
@@ -316,10 +316,8 @@ def load_archives() -> dict[str, Node]:
             if not isinstance(data, list):
                 raise ValueError("archive root is not a list")
             for item in data:
-                # 只保留 Node 的合法字段，兼容未来字段变更
                 clean = {k: v for k, v in item.items() if k in Node.__dataclass_fields__}
                 node = Node(**clean)
-                # 旧存档没有 fingerprint 字段 → 重新计算；新存档直接读取
                 fp_key = item.get("fingerprint") or node.fingerprint
                 if fp_key not in merged:
                     merged[fp_key] = node
@@ -332,7 +330,6 @@ def save_archive(nodes: list[Node]) -> Path:
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     path = ARCHIVE_DIR / f"nodes_{ts}.json"
-    # 修复：保存时把 fingerprint 一并写入，读取时不再 KeyError
     data = [{**asdict(n), "fingerprint": n.fingerprint} for n in nodes]
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     log.info("Archive saved: %s (%d nodes)", path, len(nodes))
@@ -346,6 +343,8 @@ def prune_archives():
 
 # ══════════════════════════════════════════════════════════
 # 输出：Clash Meta / Mihomo 订阅配置
+# 修复：移除 geodata-mode / geox-url，GEOSITE 改为纯域名规则，
+#       客户端无需联网下载 GeoIP/GeoSite 数据库，离线即可加载。
 # ══════════════════════════════════════════════════════════
 
 CLASH_TEMPLATE = """# ═══ Clash Meta 自动订阅 ═══
@@ -363,11 +362,6 @@ external-controller: '0.0.0.0:9090'
 ipv6: true
 unified-delay: true
 tcp-concurrent: true
-geodata-mode: true
-geox-url:
-  geoip: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geoip.dat"
-  geosite: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat"
-  mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country.mmdb"
 
 profile:
   store-selected: true
@@ -456,7 +450,7 @@ proxy-groups:
 
 # ── 规则 ──
 rules:
-  # 广告
+  # 广告拦截（纯域名规则，无需下载数据库）
   - DOMAIN-KEYWORD,admarvel,🛡️ 广告拦截
   - DOMAIN-KEYWORD,admaster,🛡️ 广告拦截
   - DOMAIN-KEYWORD,adsage,🛡️ 广告拦截
@@ -466,20 +460,36 @@ rules:
   - DOMAIN-KEYWORD,adservice,🛡️ 广告拦截
   - DOMAIN-SUFFIX,ads.google.com,🛡️ 广告拦截
   - DOMAIN-SUFFIX,doubleclick.net,🛡️ 广告拦截
-  - GEOSITE,category-ads-all,🛡️ 广告拦截
 
-  # 国内直连
-  - GEOIP,CN,🎯 全球直连
-  - GEOSITE,CN,🎯 全球直连
-  - GEOSITE,category-games@cn,🎯 全球直连
+  # 国内直连（纯域名规则，无需下载 GeoSite 数据库）
   - DOMAIN-SUFFIX,cn,🎯 全球直连
   - DOMAIN-SUFFIX,baidu.com,🎯 全球直连
   - DOMAIN-SUFFIX,bilibili.com,🎯 全球直连
+  - DOMAIN-SUFFIX,qq.com,🎯 全球直连
   - DOMAIN-SUFFIX,weixin.qq.com,🎯 全球直连
-  - DOMAIN-SUFFIX,qcloud.com,🎯 全球直连
-  - DOMAIN-SUFFIX,myqcloud.com,🎯 全球直连
+  - DOMAIN-SUFFIX,taobao.com,🎯 全球直连
+  - DOMAIN-SUFFIX,tmall.com,🎯 全球直连
+  - DOMAIN-SUFFIX,jd.com,🎯 全球直连
+  - DOMAIN-SUFFIX,163.com,🎯 全球直连
+  - DOMAIN-SUFFIX,126.com,🎯 全球直连
+  - DOMAIN-SUFFIX,weibo.com,🎯 全球直连
+  - DOMAIN-SUFFIX,sina.com.cn,🎯 全球直连
+  - DOMAIN-SUFFIX,sohu.com,🎯 全球直连
+  - DOMAIN-SUFFIX,zhihu.com,🎯 全球直连
+  - DOMAIN-SUFFIX,xiaohongshu.com,🎯 全球直连
+  - DOMAIN-SUFFIX,douyin.com,🎯 全球直连
+  - DOMAIN-SUFFIX,aliyun.com,🎯 全球直连
+  - DOMAIN-SUFFIX,alibaba.com,🎯 全球直连
   - DOMAIN-SUFFIX,alipay.com,🎯 全球直连
   - DOMAIN-SUFFIX,alipayobjects.com,🎯 全球直连
+  - DOMAIN-SUFFIX,csdn.net,🎯 全球直连
+  - DOMAIN-SUFFIX,meituan.com,🎯 全球直连
+  - DOMAIN-SUFFIX,yangkeduo.com,🎯 全球直连
+  - DOMAIN-SUFFIX,qcloud.com,🎯 全球直连
+  - DOMAIN-SUFFIX,myqcloud.com,🎯 全球直连
+
+  # 国内 IP 直连（使用客户端内置 GeoIP 数据库，无需下载）
+  - GEOIP,CN,🎯 全球直连,no-resolve
 
   # AI / Copilot
   - DOMAIN-SUFFIX,openai.com,🚀 自动选择
@@ -507,7 +517,6 @@ rules:
   - DOMAIN-SUFFIX,youtube.com,🚀 自动选择
   - DOMAIN-SUFFIX,ytimg.com,🚀 自动选择
   - DOMAIN-SUFFIX,ggpht.com,🚀 自动选择
-  - DOMAIN-SUFFIX,googlevideo.com,🚀 自动选择
   - DOMAIN-SUFFIX,youtu.be,🚀 自动选择
   - DOMAIN-KEYWORD,youtube,🚀 自动选择
 
@@ -532,11 +541,11 @@ rules:
   - DOMAIN-SUFFIX,t.me,🚀 自动选择
   - DOMAIN-SUFFIX,tdesktop.com,🚀 自动选择
   - DOMAIN-SUFFIX,telegram.me,🚀 自动选择
-  - IP-CIDR,91.108.56.0/22,🚀 自动选择
-  - IP-CIDR,91.108.4.0/22,🚀 自动选择
-  - IP-CIDR,91.108.8.0/22,🚀 自动选择
-  - IP-CIDR,109.239.140.0/24,🚀 自动选择
-  - IP-CIDR,149.154.160.0/20,🚀 自动选择
+  - IP-CIDR,91.108.56.0/22,🚀 自动选择,no-resolve
+  - IP-CIDR,91.108.4.0/22,🚀 自动选择,no-resolve
+  - IP-CIDR,91.108.8.0/22,🚀 自动选择,no-resolve
+  - IP-CIDR,109.239.140.0/24,🚀 自动选择,no-resolve
+  - IP-CIDR,149.154.160.0/20,🚀 自动选择,no-resolve
 
   # GitHub
   - DOMAIN-SUFFIX,github.com,🚀 自动选择
@@ -572,10 +581,10 @@ rules:
   - DOMAIN-SUFFIX,office.net,🎯 全球直连
 
   # LAN 局域网
-  - IP-CIDR,10.0.0.0/8,🎯 全球直连
-  - IP-CIDR,172.16.0.0/12,🎯 全球直连
-  - IP-CIDR,192.168.0.0/16,🎯 全球直连
-  - IP-CIDR,127.0.0.0/8,🎯 全球直连
+  - IP-CIDR,10.0.0.0/8,🎯 全球直连,no-resolve
+  - IP-CIDR,172.16.0.0/12,🎯 全球直连,no-resolve
+  - IP-CIDR,192.168.0.0/16,🎯 全球直连,no-resolve
+  - IP-CIDR,127.0.0.0/8,🎯 全球直连,no-resolve
 
   # Final
   - MATCH,🐟 漏网之鱼
