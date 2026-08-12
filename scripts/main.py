@@ -39,8 +39,9 @@ REPO_BRANCH    = os.getenv("GITHUB_REF_NAME", "main")
 REPO_OWNER     = os.getenv("GITHUB_REPOSITORY_OWNER", "qoder")
 REPO_NAME      = os.getenv("GITHUB_REPOSITORY", "qoder/clash-sub").split("/")[-1]
 
-# ── 爬取源 ──────────────────────────────────────────────
-SOURCES = [
+# ── 爬取源配置 ──────────────────────────────────
+# 默认节点源（作为后备）
+DEFAULT_SOURCES = [
     "https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.txt",
     "https://raw.githubusercontent.com/mksshare/mksshare.github.io/main/README.md",
     "https://raw.githubusercontent.com/ermaozi/get_subscribe/main/subscribe/clash.yml",
@@ -51,6 +52,16 @@ SOURCES = [
     "https://raw.githubusercontent.com/ripaojiedian/freenode/main/clash",
     "https://raw.githubusercontent.com/alanbobsun/TinyV2ray/main/clash_sub.yml",
 ]
+
+# 尝试从 GitHub Secrets (环境变量 SUB_SOURCES) 读取，支持多行文本
+raw_sources = os.getenv("SUB_SOURCES", "")
+if raw_sources.strip():
+    # 按换行符分割，并过滤掉空行
+    SOURCES = [url.strip() for url in raw_sources.strip().splitlines() if url.strip()]
+    log.info("✅ 成功从 Secret 加载 %d 个自定义订阅源。", len(SOURCES))
+else:
+    SOURCES = DEFAULT_SOURCES
+    log.info("⚠️ 未检测到 SUB_SOURCES Secret，使用默认的 %d 个订阅源。", len(SOURCES))
 
 # ── 代理协议 pattern ────────────────────────────────────
 PROXY_URI_RE = re.compile(
@@ -63,7 +74,6 @@ IP_PORT_RE = re.compile(
 )
 
 logger = logging.getLogger(__name__)
-
 
 # ══════════════════════════════════════════════════════════
 # Data model
@@ -89,7 +99,6 @@ class Node:
     @property
     def alive(self) -> bool:
         return self.latency is not None and self.latency < 5000
-
 
 # ══════════════════════════════════════════════════════════
 # 爬取
@@ -119,7 +128,6 @@ async def fetch_text(session: aiohttp.ClientSession, url: str) -> str:
         break
     return stripped
 
-
 def parse_vmess_uri(uri: str) -> Optional[dict]:
     try:
         b64 = uri[len("vmess://"):]
@@ -128,7 +136,6 @@ def parse_vmess_uri(uri: str) -> Optional[dict]:
         return j
     except Exception:
         return None
-
 
 EXTRACTORS = {
     "vmess": lambda u: parse_vmess_uri(u),
@@ -142,7 +149,6 @@ EXTRACTORS = {
     "hysteria": lambda u: _extract_generic(u, "hysteria"),
 }
 
-
 def _extract_generic(uri: str, proto: str) -> Optional[dict]:
     try:
         u = urlparse(uri)
@@ -150,7 +156,6 @@ def _extract_generic(uri: str, proto: str) -> Optional[dict]:
         return {"name": name, "server": u.hostname or "", "port": u.port or 443}
     except Exception:
         return None
-
 
 def _extract_ss(uri: str) -> Optional[dict]:
     try:
@@ -167,7 +172,6 @@ def _extract_ss(uri: str) -> Optional[dict]:
         return {"name": quote_plus(name), "server": host, "port": int(port)}
     except Exception:
         return None
-
 
 def parse_node(uri: str, source: str) -> Optional[Node]:
     proto = uri.split("://", 1)[0].lower()
@@ -190,7 +194,6 @@ def parse_node(uri: str, source: str) -> Optional[Node]:
         first_seen=datetime.now(timezone.utc).isoformat(),
         last_seen=datetime.now(timezone.utc).isoformat(),
     )
-
 
 async def crawl_sources(session: aiohttp.ClientSession) -> list[Node]:
     tasks = [fetch_text(session, url) for url in SOURCES]
@@ -220,7 +223,6 @@ async def crawl_sources(session: aiohttp.ClientSession) -> list[Node]:
 
     log.info("Total unique nodes crawled: %d", len(nodes))
     return list(nodes.values())
-
 
 def _add_yaml_proxy(proxy: dict, source: str, nodes: dict[str, Node]):
     proto = (proxy.get("type") or "").lower()
@@ -258,7 +260,6 @@ def _add_yaml_proxy(proxy: dict, source: str, nodes: dict[str, Node]):
     )
     nodes[n.fingerprint] = n
 
-
 # ══════════════════════════════════════════════════════════
 # 测试: TCP 连通性 + 延迟
 # ══════════════════════════════════════════════════════════
@@ -278,7 +279,6 @@ async def test_one(node: Node, sem: asyncio.Semaphore) -> None:
         except Exception:
             node.latency = None
 
-
 async def test_nodes(nodes: list[Node]) -> list[Node]:
     sem = asyncio.Semaphore(MAX_CONCURRENT)
     log.info("Testing %d nodes (concurrency=%d, timeout=%ds) ...", len(nodes), MAX_CONCURRENT, TEST_TIMEOUT)
@@ -288,7 +288,6 @@ async def test_nodes(nodes: list[Node]) -> list[Node]:
     alive = [n for n in nodes if n.alive]
     log.info("Test done in %.1fs — %d/%d alive", elapsed, len(alive), len(nodes))
     return alive
-
 
 # ══════════════════════════════════════════════════════════
 # 存档系统
@@ -309,7 +308,6 @@ def load_archives() -> dict[str, Node]:
     log.info("Loaded %d unique nodes from %d archive(s)", len(merged), min(len(files), MAX_ARCHIVE))
     return merged
 
-
 def save_archive(nodes: list[Node]) -> Path:
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -319,13 +317,11 @@ def save_archive(nodes: list[Node]) -> Path:
     log.info("Archive saved: %s (%d nodes)", path, len(nodes))
     return path
 
-
 def prune_archives():
     files = sorted(ARCHIVE_DIR.glob("nodes_*.json"), reverse=True)
     for fp in files[MAX_ARCHIVE:]:
         fp.unlink()
         log.info("Pruned old archive: %s", fp)
-
 
 # ══════════════════════════════════════════════════════════
 # 输出：Clash Meta / Mihomo 订阅配置
@@ -398,7 +394,8 @@ dns:
 proxy-groups:
   - name: "🚀 自动选择"
     type: url-test
-    proxies: {proxy_names}
+    proxies:
+      {proxy_names}
     url: 'https://www.gstatic.com/generate_204'
     interval: 300
     tolerance: 50
@@ -566,18 +563,26 @@ proxies:
 {yaml_nodes}
 """
 
-
 def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     nodes_sorted = sorted(nodes, key=lambda n: (not n.alive, n.latency or 9999))
 
-    proxy_names = ", ".join(f'"{n.name}"' for n in nodes_sorted if n.alive)[:250]
-    proxy_names_select = chr(10) + "      ".join(f'- "{n.name}"' for n in nodes_sorted[:50])
+    # 修复：生成正确的 YAML 列表，而不是逗号分隔的字符串
+    proxy_names_list = [f'- "{n.name}"' for n in nodes_sorted if n.alive][:100]
+    if not proxy_names_list:
+        proxy_names_list = ['- "DIRECT"']
+    proxy_names = "\n      ".join(proxy_names_list)
+
+    select_list = [f'- "{n.name}"' for n in nodes_sorted[:50]]
+    if not select_list:
+        proxy_names_select = ""
+    else:
+        proxy_names_select = "\n      ".join(select_list)
 
     yaml_nodes_list = []
     for n in nodes_sorted:
         yaml_nodes_list.append(_node_to_yaml(n))
 
-    yaml_block = chr(10).join(yaml_nodes_list)
+    yaml_block = "\n".join(yaml_nodes_list)
 
     return CLASH_TEMPLATE.format(
         datetime=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
@@ -588,7 +593,6 @@ def generate_subscription(nodes: list[Node], archive_count: int) -> str:
         proxy_names_select=proxy_names_select,
         yaml_nodes=yaml_block,
     )
-
 
 def _node_to_yaml(n: Node) -> str:
     latency_tag = f" [{n.latency}ms]" if n.alive else ""
@@ -674,7 +678,6 @@ def _node_to_yaml(n: Node) -> str:
     server: {n.server}
     port: {n.port}"""
 
-
 # ══════════════════════════════════════════════════════════
 # Main
 # ══════════════════════════════════════════════════════════
@@ -754,7 +757,6 @@ th {{ color: #888; font-weight: 600; font-size: 0.85rem; }}
 
         log.info("Output written to %s/", OUTPUT_DIR)
         log.info("Subscription URL: https://%s.github.io/%s/clash.yaml", REPO_OWNER, REPO_NAME)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
