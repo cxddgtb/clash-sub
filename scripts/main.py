@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Clash 节点爬取 → 测试筛选 → 去重归档 → 输出订阅
+Clash 节点爬取 → 测试筛选 → 去重归档 → 输出订阅 (防崩溃终极版)
 """
 
 from __future__ import annotations
@@ -26,6 +26,11 @@ from urllib.parse import urlparse, quote_plus
 
 import aiohttp
 import async_timeout
+
+# 强制开启无缓冲输出，确保报错能立刻显示在 GitHub Actions 日志中
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(line_buffering=True)
+    sys.stderr.reconfigure(line_buffering=True)
 
 # ── Logging ──────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -75,12 +80,6 @@ PROXY_URI_RE = re.compile(
     re.IGNORECASE,
 )
 
-IP_PORT_RE = re.compile(
-    r'\b(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d{2,5})\b'
-)
-
-logger = logging.getLogger(__name__)
-
 # ══════════════════════════════════════════════════════════
 # Data model
 # ══════════════════════════════════════════════════════════
@@ -104,25 +103,26 @@ class Node:
 
     @property
     def alive(self) -> bool:
-        # 只有延迟不为空，且不是假延迟，才算存活
         return self.latency is not None and self.latency < 5000
 
 # ══════════════════════════════════════════════════════════
-# 名称工具（已去除延迟标签，交由客户端真实测速）
+# 名称与格式工具
 # ══════════════════════════════════════════════════════════
 
 def _display_name(n: Node) -> str:
-    # 不再拼接延迟标签，避免误导，让 Clash 客户端自己测真实延迟
-    return n.name
+    name = n.name if isinstance(n.name, str) else str(n.name)
+    return name
 
 def _yaml_str(s: str) -> str:
+    if not isinstance(s, str):
+        s = str(s) if s is not None else ""
     return (s.replace("\\", "\\\\")
              .replace('"', '\\"')
              .replace("\n", " ")
              .replace("\r", " "))
 
 # ══════════════════════════════════════════════════════════
-# 爬取
+# 爬取与解析
 # ══════════════════════════════════════════════════════════
 
 async def fetch_text(session: aiohttp.ClientSession, url: str) -> str:
@@ -133,7 +133,7 @@ async def fetch_text(session: aiohttp.ClientSession, url: str) -> str:
                     log.warning("HTTP %d %s", resp.status, url)
                     return ""
                 raw = await resp.text(encoding="utf-8", errors="replace")
-    except Exception:
+    except BaseException:
         log.warning("Fetch failed: %s", url)
         return ""
 
@@ -144,7 +144,7 @@ async def fetch_text(session: aiohttp.ClientSession, url: str) -> str:
             if any(proto in decoded for proto in ("vmess://", "vless://", "trojan://", "ss://")):
                 stripped = decoded.strip()
                 continue
-        except Exception:
+        except BaseException:
             pass
         break
     return stripped
@@ -155,7 +155,7 @@ def parse_vmess_uri(uri: str) -> Optional[dict]:
         b64 += "=" * (4 - len(b64) % 4)
         j = json.loads(base64.b64decode(b64))
         return j
-    except Exception:
+    except BaseException:
         return None
 
 EXTRACTORS = {
@@ -175,7 +175,7 @@ def _extract_generic(uri: str, proto: str) -> Optional[dict]:
         u = urlparse(uri)
         name = quote_plus(u.fragment or "")
         return {"name": name, "server": u.hostname or "", "port": u.port or 443}
-    except Exception:
+    except BaseException:
         return None
 
 def _extract_ss(uri: str) -> Optional[dict]:
@@ -191,7 +191,7 @@ def _extract_ss(uri: str) -> Optional[dict]:
         host, port = server_part.rsplit(":", 1)
         name = body.split("#", 1)[1] if "#" in body else ""
         return {"name": quote_plus(name), "server": host, "port": safe_int(port, 8388)}
-    except Exception:
+    except BaseException:
         return None
 
 def parse_node(uri: str, source: str) -> Optional[Node]:
@@ -235,11 +235,13 @@ async def crawl_sources(session: aiohttp.ClientSession) -> list[Node]:
         try:
             y = yaml.safe_load(text)
             if isinstance(y, dict):
-                for proxy in y.get("proxies", []):
-                    if not isinstance(proxy, dict):
-                        continue
-                    _add_yaml_proxy(proxy, url, nodes)
-        except Exception:
+                proxies = y.get("proxies")
+                # 防御：如果 proxies 为 None 或非列表，跳过，防止 TypeError 崩溃
+                if isinstance(proxies, list):
+                    for proxy in proxies:
+                        if isinstance(proxy, dict):
+                            _add_yaml_proxy(proxy, url, nodes)
+        except BaseException:
             pass
 
     log.info("Total unique nodes crawled: %d", len(nodes))
@@ -289,7 +291,6 @@ async def test_one(node: Node, sem: asyncio.Semaphore) -> None:
     async with sem:
         try:
             loop = asyncio.get_running_loop()
-            # 1. 强制底层 DNS 解析，获取真实 IP
             infos = await loop.getaddrinfo(node.server, node.port, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM)
             if not infos:
                 node.latency = None
@@ -298,28 +299,31 @@ async def test_one(node: Node, sem: asyncio.Semaphore) -> None:
             family, type_, proto, canonname, sockaddr = infos[0]
             ip = sockaddr[0]
             
-            # 2. 过滤本地/局域网 IP (防止 DNS 污染劫持到本地网络导致 1ms 假连通)
-            if ip.startswith('127.') or ip.startswith('10.') or ip.startswith('192.168.') or ip.startswith('0.') or ip == '::1':
+            # 过滤本地/局域网/劫持 IP
+            if ip.startswith('127.') or ip.startswith('10.') or ip.startswith('192.168.') or ip.startswith('0.') or ip == '::1' or ip.startswith('169.254.'):
                 node.latency = None
                 return
 
-            # 3. 连接真实 IP
             t0 = time.monotonic()
             _, writer = await asyncio.wait_for(
                 asyncio.open_connection(ip, node.port),
                 timeout=TEST_TIMEOUT,
             )
             latency = int((time.monotonic() - t0) * 1000)
-            writer.close()
-            await writer.wait_closed()
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except BaseException:
+                pass
             
-            # 4. 过滤不合理的超低延迟 (广域网 TCP 握手极少 < 15ms，低于 15ms 大概率是防火墙秒拒或劫持)
+            # 广域网 TCP 握手极少 < 15ms，低于 15ms 大概率是防火墙秒拒或劫持
             if latency < 15:
                 node.latency = None
             else:
                 node.latency = latency
                 
-        except Exception:
+        except BaseException:
+            # 捕获所有异常（包括 CancelledError），防止单个节点测速失败导致整个 gather 崩溃
             node.latency = None
 
 async def test_nodes(nodes: list[Node]) -> list[Node]:
@@ -338,19 +342,26 @@ async def test_nodes(nodes: list[Node]) -> list[Node]:
 
 def load_archives() -> dict[str, Node]:
     merged: dict[str, Node] = {}
+    if not ARCHIVE_DIR.exists():
+        return merged
     files = sorted(ARCHIVE_DIR.glob("nodes_*.json"), reverse=True)
     for fp in files[:MAX_ARCHIVE]:
         try:
             data = json.loads(fp.read_text(encoding="utf-8"))
             if not isinstance(data, list):
-                raise ValueError("archive root is not a list")
+                continue
             for item in data:
+                if not isinstance(item, dict):
+                    continue
                 clean = {k: v for k, v in item.items() if k in Node.__dataclass_fields__}
+                # 确保关键字段存在
+                if not all(k in clean for k in ["uri", "protocol", "name", "server", "port"]):
+                    continue
                 node = Node(**clean)
                 fp_key = item.get("fingerprint") or node.fingerprint
                 if fp_key not in merged:
                     merged[fp_key] = node
-        except Exception as e:
+        except BaseException as e:
             log.warning("Corrupted archive (ignored): %s — %s", fp, e)
     log.info("Loaded %d unique nodes from %d archive(s)", len(merged), min(len(files), MAX_ARCHIVE))
     return merged
@@ -365,6 +376,7 @@ def save_archive(nodes: list[Node]) -> Path:
     return path
 
 def prune_archives():
+    if not ARCHIVE_DIR.exists(): return
     files = sorted(ARCHIVE_DIR.glob("nodes_*.json"), reverse=True)
     for fp in files[MAX_ARCHIVE:]:
         fp.unlink()
@@ -623,7 +635,6 @@ proxies:
 
 def generate_subscription(nodes: list[Node], archive_count: int) -> str:
     alive_nodes = [n for n in nodes if n.alive]
-    # 服务端初步按 TCP 延迟排序（作为初始顺序）
     alive_nodes.sort(key=lambda n: n.latency or 9999)
     
     seen: set[str] = set()
@@ -672,9 +683,9 @@ def _node_to_yaml(n: Node) -> str:
     type: vmess
     server: {n.server}
     port: {n.port}
-    uuid: {info.get('id','')}
+    uuid: {info.get('id') or ''}
     alterId: {safe_int(info.get('aid'), 0)}
-    cipher: {info.get('type','auto')}
+    cipher: {info.get('type') or 'auto'}
     udp: true"""
     elif n.protocol == "vless":
         u = urlparse(n.uri)
@@ -686,7 +697,7 @@ def _node_to_yaml(n: Node) -> str:
     uuid: {u.username or ''}
     udp: true
     tls: {params.get('security') == 'tls'}
-    network: {params.get('type','tcp')}"""
+    network: {params.get('type') or 'tcp'}"""
     elif n.protocol == "trojan":
         u = urlparse(n.uri)
         return f"""  - name: "{name}"
@@ -706,7 +717,7 @@ def _node_to_yaml(n: Node) -> str:
                 decoded = base64.b64decode(b64).decode()
                 method_pw = decoded.rsplit("@", 1)[0]
                 user, pw = method_pw.split(":", 1)
-            except:
+            except BaseException:
                 pass
         return f"""  - name: "{name}"
     type: ss
@@ -822,7 +833,7 @@ th {{ color: #888; font-weight: 600; font-size: 0.85rem; }}
 if __name__ == "__main__":
     try:
         asyncio.run(main())
-    except Exception as e:
-        log.error("❌ 脚本崩溃: %s", e)
+    except BaseException as e:
+        print(f"\n\n❌❌❌ 脚本发生致命错误: {type(e).__name__}: {e} ❌❌❌\n", flush=True)
         traceback.print_exc()
         sys.exit(1)
