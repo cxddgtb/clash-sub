@@ -1,7 +1,7 @@
 # ═══ Clash Meta 自动订阅 ═══
-# 更新时间: 2026-08-12 14:34:04 UTC
+# 更新时间: 2026-08-12 14:50:53 UTC
 # 节点总数: 22 (本次存活: 10)
-# 存档去重覆盖天数: ~1d
+# 存档去重覆盖天数: ~2d
 
 mixed-port: 7890
 allow-lan: true
@@ -65,7 +65,7 @@ dns:
 proxy-groups:
   - name: "🚀 自动选择"
     type: url-test
-    proxies: "🇺🇸_US_美国->🇩🇪_DE_德国", "🇺🇸_US_美国_1", "🇩🇪_DE_德国->🇧🇷_BR_巴西", "🇺🇸_US_美国", "🇫🇷_FR_法国", "🇭🇰 香港5|@ripaojiedian", "🇭🇰_HK_中国香港->🇯🇵_JP_日本", "🇨🇳_CN_中国", "🇭🇰 香港|@ripaojiedian", "🇨🇳_CN_中国->🇭🇰_HK_中国香港"
+    proxies: "🇺🇸_US_美国->🇩🇪_DE_德国", "🇺🇸_US_美国_1", "🇺🇸_US_美国", "🇭🇰_HK_中国香港->🇯🇵_JP_日本", "🇩🇪_DE_德国->🇧🇷_BR_巴西", "🇭🇰 香港5|@ripaojiedian", "🇫🇷_FR_法国", "🇨🇳_CN_中国", "🇭🇰 香港|@ripaojiedian", "🇨🇳_CN_中国->🇭🇰_HK_中国香港"
     url: 'https://www.gstatic.com/generate_204'
     interval: 300
     tolerance: 50
@@ -76,7 +76,7 @@ proxy-groups:
       - "🚀 自动选择"
       - DIRECT
       
-- "🇺🇸_US_美国->🇩🇪_DE_德国"      - "🇺🇸_US_美国_1"      - "🇩🇪_DE_德国->🇧🇷_BR_巴西"      - "🇺🇸_US_美国"      - "🇫🇷_FR_法国"      - "🇭🇰 香港5|@ripaojiedian"      - "🇭🇰_HK_中国香港->🇯🇵_JP_日本"      - "🇨🇳_CN_中国"      - "🇭🇰 香港|@ripaojiedian"      - "🇨🇳_CN_中国->🇭🇰_HK_中国香港"      - "tg频道:@ripaojiedian"      - "🇭🇰 香港3|@ripaojiedian"      - "🇭🇰 香港4|@ripaojiedian"      - "🇯🇵 日本|@ripaojiedian"      - "🇯🇵 日本2|@ripaojiedian"      - "🇯🇵 日本3|@ripaojiedian"      - "🇸🇬 新加坡|@ripaojiedian"      - "🇸🇬 新加坡2|@ripaojiedian"      - "🇸🇬 新加坡3|@ripaojiedian"      - "🇺🇸 美国|@ripaojiedian"      - "🇺🇸 美国2|@ripaojiedian"      - "🇺🇸 美国3|@ripaojiedian"
+- "🇺🇸_US_美国->🇩🇪_DE_德国"      - "🇺🇸_US_美国_1"      - "🇺🇸_US_美国"      - "🇭🇰_HK_中国香港->🇯🇵_JP_日本"      - "🇩🇪_DE_德国->🇧🇷_BR_巴西"      - "🇭🇰 香港5|@ripaojiedian"      - "🇫🇷_FR_法国"      - "🇨🇳_CN_中国"      - "🇭🇰 香港|@ripaojiedian"      - "🇨🇳_CN_中国->🇭🇰_HK_中国香港"      - "tg频道:@ripaojiedian"      - "🇭🇰 香港3|@ripaojiedian"      - "🇭🇰 香港4|@ripaojiedian"      - "🇯🇵 日本|@ripaojiedian"      - "🇯🇵 日本2|@ripaojiedian"      - "🇯🇵 日本3|@ripaojiedian"      - "🇸🇬 新加坡|@ripaojiedian"      - "🇸🇬 新加坡2|@ripaojiedian"      - "🇸🇬 新加坡3|@ripaojiedian"      - "🇺🇸 美国|@ripaojiedian"      - "🇺🇸 美国2|@ripaojiedian"      - "🇺🇸 美国3|@ripaojiedian"
 
   - name: "📺 流媒体"
     type: select
@@ -231,7 +231,7 @@ rules:
 
 # ── 代理节点 ──
 proxies:
-  - name: "🇺🇸_US_美国->🇩🇪_DE_德国 [3ms]"
+  - name: "🇺🇸_US_美国->🇩🇪_DE_德国 [9ms]"
     type: vless
     server: 104.25.194.196
     port: 2086
@@ -239,7 +239,7 @@ proxies:
     udp: true
     tls: False
     network: ws
-  - name: "🇺🇸_US_美国_1 [3ms]"
+  - name: "🇺🇸_US_美国_1 [10ms]"
     type: vless
     server: 172.67.209.127
     port: 8880
@@ -247,15 +247,7 @@ proxies:
     udp: true
     tls: False
     network: ws
-  - name: "🇩🇪_DE_德国->🇧🇷_BR_巴西 [88ms]"
-    type: vless
-    server: 18.198.227.161
-    port: 443
-    uuid: 4f375fb4-3c95-425f-bc7b-8085487a6f3c
-    udp: true
-    tls: False
-    network: ws
-  - name: "🇺🇸_US_美国 [96ms]"
+  - name: "🇺🇸_US_美国 [30ms]"
     type: vmess
     server: guanwang.awsno.com
     port: 443
@@ -263,7 +255,27 @@ proxies:
     alterId: 0
     cipher: auto
     udp: true
-  - name: "🇫🇷_FR_法国 [159ms]"
+  - name: "🇭🇰_HK_中国香港->🇯🇵_JP_日本 [101ms]"
+    type: trojan
+    server: oplosgru-c.catcat321.com
+    port: 20004
+    password: "ba07a8af-5544-48ac-ab62-3b6c00a44fa6"
+    udp: true
+  - name: "🇩🇪_DE_德国->🇧🇷_BR_巴西 [148ms]"
+    type: vless
+    server: 18.198.227.161
+    port: 443
+    uuid: 4f375fb4-3c95-425f-bc7b-8085487a6f3c
+    udp: true
+    tls: False
+    network: ws
+  - name: "🇭🇰 香港5|@ripaojiedian [159ms]"
+    type: trojan
+    server: 18.162.120.218
+    port: 11035
+    password: "BxceQaOe"
+    udp: true
+  - name: "🇫🇷_FR_法国 [167ms]"
     type: vless
     server: fr199.mechvpn.online
     port: 443
@@ -271,19 +283,7 @@ proxies:
     udp: true
     tls: False
     network: tcp
-  - name: "🇭🇰 香港5|@ripaojiedian [206ms]"
-    type: trojan
-    server: 18.162.120.218
-    port: 11035
-    password: "BxceQaOe"
-    udp: true
-  - name: "🇭🇰_HK_中国香港->🇯🇵_JP_日本 [256ms]"
-    type: trojan
-    server: oplosgru-c.catcat321.com
-    port: 20004
-    password: "ba07a8af-5544-48ac-ab62-3b6c00a44fa6"
-    udp: true
-  - name: "🇨🇳_CN_中国 [271ms]"
+  - name: "🇨🇳_CN_中国 [216ms]"
     type: vless
     server: 120.227.1.43
     port: 12528
@@ -291,7 +291,7 @@ proxies:
     udp: true
     tls: False
     network: tcp
-  - name: "🇭🇰 香港|@ripaojiedian [319ms]"
+  - name: "🇭🇰 香港|@ripaojiedian [241ms]"
     type: vmess
     server: v10.hdacd.com
     port: 30807
@@ -299,7 +299,7 @@ proxies:
     alterId: 2
     cipher: auto
     udp: true
-  - name: "🇨🇳_CN_中国->🇭🇰_HK_中国香港 [350ms]"
+  - name: "🇨🇳_CN_中国->🇭🇰_HK_中国香港 [314ms]"
     type: vmess
     server: v9.hdacd.com
     port: 30809
