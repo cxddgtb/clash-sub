@@ -41,6 +41,8 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Crawl & harvest nodes
+        env:
+          SUB_SOURCES: ${{ secrets.SUB_SOURCES }}
         run: python scripts/main.py
 
       - name: Commit & push archives + output
